@@ -1,0 +1,26 @@
+{
+  "name": "bansai-marketplace",
+  "owner": {
+    "name": "bansan",
+    "email": "github@le-garrec.fr",
+    "url": "https://github.com/bansan85"
+  },
+  "metadata": {
+    "description": "All my skills",
+    "version": "0.0.1"
+  },
+  "plugins": [
+    {
+      "name": "bansai",
+      "source": "./plugins/bansai",
+      "description": "All my skills",
+      "version": "0.0.1",
+      "author": {
+        "name": "bansan",
+        "email": "github@le-garrec.fr"
+      },
+      "homepage": "https://github.com/bansan85/bansAI-marketplace",
+      "license": "MIT"
+    }
+  ]
+}
