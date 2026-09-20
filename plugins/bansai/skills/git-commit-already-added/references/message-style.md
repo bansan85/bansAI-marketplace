@@ -47,11 +47,20 @@ one concept.
   concept, drop it and start directly with the concept paragraph(s).
 - **Concept paragraph(s)**: one paragraph per concept stating what the
   commit actually changes — the solution itself, not just the problem
-  it addresses. Do not summarize the diff as code; explain what the
-  change does to the code, to the software's behaviour, or to what a
-  caller or user can now expect. Stay factual and tied to what the
-  diff actually does — don't narrate the process taken or list
-  alternatives that were rejected.
+  it addresses. Describe the finality, not the diff: state what goes
+  wrong and why it matters, or what changed in effect — to the
+  software's behaviour, or to what a caller or user can now expect —
+  not how the code does it. The reader can already see the code; the
+  body's job is to say what the code cannot say about itself. Stay
+  factual and tied to what the diff actually does.
+- **Stay on the code**: never mention how a bug was found (code
+  review, fuzzing, a specific crash report, ...) or anything else
+  about the process behind the commit, and never list alternatives
+  that were rejected.
+- **Names**: do not name functions, member variables or classes unless
+  understanding the commit is impossible without that name. Prefer a
+  plain description of the role or behaviour instead. Never name a
+  private member variable: describe its role.
 - **Paragraph length**: at most 5 lines per paragraph, and always the
   shortest wording that carries the information — 5 is the ceiling,
   not the budget to spend. If a paragraph runs past 5 lines, check
@@ -72,9 +81,12 @@ one concept.
 - **Bug fixes**: first paragraph describes the bug, second paragraph
   describes the fix. Skip the second paragraph if it would just
   restate the first one with the faulty condition inverted. When the
-  defect has a standard class name, use it (buffer overflow, divide
-  by zero, double free, out-of-bounds access, use-after-free, race
-  condition, etc.) — but only when it accurately describes the flaw.
+  defect has a standard vulnerability-class name, use it (out-of-bounds
+  read/write, use-after-free, double free, integer overflow, type
+  confusion, divide by zero, race condition, etc.) — but only when it
+  accurately describes the flaw. Use it in the title as well as in the
+  bug paragraph, e.g. `fix: close use-after-free in NO_CACHE read
+  buffer`. The 50-character ceiling still applies.
 
 ## Conventional Commits
 
@@ -231,3 +243,6 @@ fails:
    if there is more than one.
 6. The output contains the message only — no preamble, no code fences,
    no explanation.
+7. The body says nothing about how the change was found or made, and
+   names no function, member variable or class that a plain
+   description of its role could replace.
