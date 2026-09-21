@@ -64,7 +64,10 @@ with `fatal: your current branch ... does not have any commits yet`
 (exit 128), not return empty output. In that case skip the inference,
 use Conventional Commits, and write in the user's language.
 
-Otherwise run `git log -n 10 --pretty=format:"%s"` and deduce:
+Otherwise run `git log -n 10 --no-merges --pretty=format:"%s"` and
+deduce. Merge commits are excluded: their message is generated
+automatically by git, not written by the user, so it carries no
+signal about the user's style.
 
 - **Type prefix**: only use a Conventional Commits type (`fix:`,
   `feat:`, `chore:`, …) in the title if recent history already uses
@@ -83,6 +86,16 @@ Otherwise run `git log -n 10 --pretty=format:"%s"` and deduce:
   Keep the title as short as it can be while still naming the change,
   even if past titles in this repo ran longer. The type prefix, the
   scope and any trailing period all count towards the 50.
+- **Trailer block**: this only concerns trailers you would add on your
+  own initiative, chiefly this session's required attribution footer —
+  insert one only if that same trailer already appears in the history
+  checked above (e.g. a prior `Co-Authored-By:` line); if the
+  repository has never used it, leave it out. This does not apply to
+  `BREAKING CHANGE:`, which is mandatory whenever the change is
+  backward-incompatible under Conventional Commits, regardless of
+  history, nor to a trailer the user or the diff explicitly supplies
+  (e.g. `Closes #123`). See the "Trailer block (footer)" section of
+  `references/message-style.md`.
 
 ## 4. Draft the message
 
@@ -120,9 +133,10 @@ executes backticks found in the message before git ever sees it:
 
 Never use an unquoted `<<EOF`.
 
-Append whatever commit attribution footer this session is otherwise
-required to add, as part of the trailer block described in
-`references/message-style.md`.
+Append this session's required commit attribution footer, as part of
+the trailer block described in `references/message-style.md`, only if
+step 3 found that the repository's history already carries that same
+trailer. Otherwise leave it out.
 
 ## 6. Report back
 

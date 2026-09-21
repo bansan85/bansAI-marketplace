@@ -118,6 +118,15 @@ Any trailer — `BREAKING CHANGE:`, `Closes #123`, `Refs:`,
 goes in a single block at the very end of the message, after one blank
 line, one trailer per entry.
 
+Only add a trailer automatically when it is not supplied by the user
+or the diff — this is chiefly the session's own attribution footer —
+if that same trailer already appears in the repository's recent
+history (checked in step 3 of `SKILL.md`). If the repository has never
+used it, do not introduce it on your own. This history check does not
+apply to `BREAKING CHANGE:`: it is mandatory whenever the change is
+backward-incompatible under Conventional Commits, regardless of
+whether the history has used it before.
+
 **A trailer wraps only when its value is free prose.** In practice that
 means `BREAKING CHANGE:` and nothing else: its text varies in length, so
 it obeys the 72-character limit like the rest of the message — wrap it
