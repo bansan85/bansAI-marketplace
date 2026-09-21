@@ -80,13 +80,20 @@ one concept.
   don't add a body paragraph just to have one.
 - **Bug fixes**: first paragraph describes the bug, second paragraph
   describes the fix. Skip the second paragraph if it would just
-  restate the first one with the faulty condition inverted. When the
-  defect has a standard vulnerability-class name, use it (out-of-bounds
-  read/write, use-after-free, double free, integer overflow, type
-  confusion, divide by zero, race condition, etc.) — but only when it
-  accurately describes the flaw. Use it in the title as well as in the
-  bug paragraph, e.g. `fix: close use-after-free in NO_CACHE read
-  buffer`. The 50-character ceiling still applies.
+  restate the first one with the faulty condition inverted. This
+  applies at the clause level too: a fix paragraph must describe the
+  mechanism of the solution, not tack on a "so X no longer happens" /
+  "instead of Y" clause whose only content is the bug paragraph's
+  condition negated. If a clause states genuinely new information (a
+  concrete new behavior, not just the absence of the old one), keep
+  it; if removing it would lose nothing because the bug paragraph
+  already implies it by negation, cut it. When the defect has a
+  standard vulnerability-class name, use it (out-of-bounds read/write,
+  use-after-free, double free, integer overflow, type confusion,
+  divide by zero, race condition, etc.) — but only when it accurately
+  describes the flaw. Use it in the title as well as in the bug
+  paragraph, e.g. `fix: close use-after-free in NO_CACHE read buffer`.
+  The 50-character ceiling still applies.
 
 ## Conventional Commits
 
@@ -207,6 +214,42 @@ new refreshToken function that calls the /refresh endpoint and
 sets this.token. Also removed an unused import.
 ```
 
+### Bad — fix paragraph tacks on a negated restatement of the bug
+
+```
+fix(verify): don't crash on unreadable object
+
+The dialog runs git with throwOnErrorExit, so a single corrupted
+dangling object broke the whole feature: batch-fetching commit
+metadata aborted with no output, and previewing that object's
+content threw an unhandled exception that crashed the dialog.
+
+Fall back to querying each commit's metadata individually when
+the batched git show fails, so one unreadable commit no longer
+wipes out the metadata for the rest of the batch. Catch the same
+failure when fetching an object's content for preview, and show
+a placeholder message instead of letting the exception propagate.
+```
+
+Both clauses after the commas ("so one unreadable commit no longer
+wipes out the metadata for the rest of the batch", "instead of
+letting the exception propagate") add no information: they are the
+bug paragraph's conditions negated, not a description of the fix
+mechanism. Cut them:
+
+```
+fix(verify): don't crash on unreadable object
+
+The dialog runs git with throwOnErrorExit, so a single corrupted
+dangling object broke the whole feature: batch-fetching commit
+metadata aborted with no output, and previewing that object's
+content threw an unhandled exception that crashed the dialog.
+
+Fall back to querying each commit's metadata individually when
+the batched git show fails. Catch the same failure when fetching
+an object's content for preview, and show a placeholder message.
+```
+
 ### Bad — invents information the diff does not contain
 
 ```
@@ -246,3 +289,7 @@ fails:
 7. The body says nothing about how the change was found or made, and
    names no function, member variable or class that a plain
    description of its role could replace.
+8. In a bug fix, no clause of the fix paragraph merely negates a
+   condition already stated in the bug paragraph (e.g. "so X no
+   longer happens", "instead of Y") — every clause states the fix's
+   mechanism or genuinely new information.
