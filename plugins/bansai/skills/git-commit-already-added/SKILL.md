@@ -64,10 +64,15 @@ with `fatal: your current branch ... does not have any commits yet`
 (exit 128), not return empty output. In that case skip the inference,
 use Conventional Commits, and write in the user's language.
 
-Otherwise run `git log -n 10 --no-merges --pretty=format:"%s"` and
+Otherwise run `git log -n 10 --no-merges --format="%B---END---"` and
 deduce. Merge commits are excluded: their message is generated
 automatically by git, not written by the user, so it carries no
-signal about the user's style.
+signal about the user's style. This prints the full body of each
+commit, not just the subject: for the title-only checks below (prefix,
+casing, length) read just the first line of each block; for the
+**Trailer block** check further down, read the whole block, since a
+trailer lives in the body and would never show up in a subject-only
+format like `%s`.
 
 - **Type prefix**: only use a Conventional Commits type (`fix:`,
   `feat:`, `chore:`, …) in the title if recent history already uses
