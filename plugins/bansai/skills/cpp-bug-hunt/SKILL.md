@@ -205,14 +205,13 @@ doubt survives, **report the finding** rather than staying silent (see
 
 ## 4bis. Parallelization strategy
 
-Applies to a **folder** or the **whole repo**, and only **if subagents are
-available** in the install. Otherwise, process the scope **sequentially** —
-don't depend on any subagent type. Parallelization **increases** token
-consumption (repeated code reads), but that's the price of recall: **the
-split matters more than model strength** — a split that separates a bug
-from the evidence it needs caps recall regardless of the model (a
-**cross-file** bug isn't findable by an agent that doesn't see both files,
-however strong).
+Applies to a **folder** or the **whole repo**, only **if subagents are
+available** in the install — otherwise process the scope **sequentially**.
+Parallelization **increases** token consumption (repeated code reads), but
+that's the price of recall: **the split matters more than model strength**
+— a split that separates a bug from the evidence it needs caps recall
+regardless of the model (a **cross-file** bug isn't findable by an agent
+that doesn't see both files, however strong).
 
 **The default split is Case A (by bug type).** Case B (by file) is a
 degraded **fallback**, triggered **only** if the scope exceeds a single
@@ -220,11 +219,11 @@ subagent's context — see the test below.
 
 ### Deciding A vs B — the threshold is a *subagent's* context, not yours
 
-The tipping point is **not** your context as orchestrator (which fills up
-just from scoping/coordinating), but that of **one subagent**: in Case A
-each subagent starts with **its own fresh context** and reads **the whole
-scope** into it. The question is therefore: *does the scoped code fit, with
-room to reason, in a single subagent window?*
+The tipping point is that of **one subagent**, not your own context as
+orchestrator (which fills up just from scoping/coordinating): in Case A each
+subagent starts fresh and reads **the whole scope** into it. The question is
+*does the scoped code fit, with room to reason, in a single subagent
+window?*
 
 - Estimate the **actual size** of the retained code (cumulative bytes/lines
   of tracked files in scope: `git ls-files` filtered of exclusions), **not**
@@ -320,18 +319,15 @@ stronger model adds nothing.
 
 **Applicability — important:**
 
-- **In fan-out (§4bis)**, this breakdown is **actually actionable**: run
-  each subagent on the model from its column (analysis-by-angle-group,
-  verification, and consolidation subagents → **Opus**; any
-  scoping/pre-triage subagent → **Haiku**).
-- **In single-agent mode** (diff, file, medium folder), you **can't** switch
-  models mid-run: everything runs on the session's model. This table then
-  becomes **indicative**. Practical consequence: for a **serious audit**,
-  the session should run on a **strong model** (Opus), since the analysis
-  step demands it; don't launch an important audit on a light model. If the
-  session is already on a light model, **say so** in the reply ("analysis
-  run on \<model\>, reduced reliability — rerun on Opus for a thorough
-  audit") rather than claiming coverage you don't have.
+- **In fan-out (§4bis)**: run each subagent on the model from its column
+  (analysis-by-angle-group, verification, and consolidation subagents →
+  **Opus**; any scoping/pre-triage subagent → **Haiku**).
+- **In single-agent mode** (diff, file, medium folder): you **can't** switch
+  models mid-run, so the table is **indicative** only — everything runs on
+  the session's model. Don't launch a serious audit on a light model. If the
+  session is already on one, **say so** in the reply ("analysis run on
+  \<model\>, reduced reliability — rerun on Opus for a thorough audit")
+  rather than claiming coverage you don't have.
 
 ## 5. Write the report
 

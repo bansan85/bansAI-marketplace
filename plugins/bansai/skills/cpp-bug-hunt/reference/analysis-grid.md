@@ -144,10 +144,9 @@ consistent**.
 
 ## Impact category
 
-In addition to the bug **category** above (A–F), classify each finding into
-an **impact category** from the list below. This is a **second, orthogonal
-axis** — a finding always has both a category (A–F: what kind of defect it
-is) and an impact category (what happens as a result).
+Second, independent axis: not what kind of defect it is (A–F above), but
+what happens as a result. Classify each finding into one of the categories
+below in addition to its A–F category.
 
 This list is a reasoning aid, not a **closed grid**: the examples given for
 each category are **illustrative, not exhaustive**. A bug whose impact

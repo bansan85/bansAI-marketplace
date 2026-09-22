@@ -177,42 +177,23 @@ what matters.
 
 ## Impact categories
 
-See `reference/analysis-grid.md`, "Impact category" section, for the full
-definitions and examples. In order from most to least severe:
-
-1. **Exploitable security vulnerability**
-2. **Crash**
-3. **Bad behavior without a crash**
-4. **Omissions**
-5. **Bug without user-visible impact**
-6. **Improvement**
-
-Group the report's findings under these six headings (§ "Findings" in the
-template above), **only include headings that have at least one finding**,
-and keep this exact order top to bottom.
+Definitions, examples, and severity ordering: `reference/analysis-grid.md`,
+"Impact category" section. Group findings under those six headings (§
+"Findings" above) in that same order, **only including headings that have
+at least one finding**.
 
 ## Categories (A–F)
 
-The bug **category** (Memory, Ownership, Concurrency, UB, STL, Logic — see
-`reference/analysis-grid.md`) is a separate, orthogonal field from impact.
-Always report both on their own dedicated lines, as in the template.
+Bug category (Memory, Ownership, Concurrency, UB, STL, Logic —
+`reference/analysis-grid.md`) is a separate field from impact. Report both,
+each on its own dedicated line, as in the template.
 
 ## Certainty — there is no confidence field
 
-A finding is in the report or it isn't; **never** add a confidence or
-"to confirm" field.
-
-- Only report a bug **you are sure of**. Certainty is the price of entry,
-  not a field to fill in.
-- If you have a doubt, **keep investigating**: read the callers, the
-  headers, the dependency's own sources, the entry points at the top of the
-  stack — whatever the doubt hangs on. Resolve it.
-- If the doubt **survives** that investigation, the persistent doubt is
-  itself the signal: you sense something is off and can't clear it. **Write
-  the finding anyway**, and let the last bullet of the Reasoning chain state
-  plainly what you were unable to establish, with its reference.
-- What you must never do is hedge a finding you didn't investigate.
-  "To confirm" is not an option; investigating is.
+A finding is in the report or it isn't; **never** add a confidence or "to
+confirm" field. See SKILL.md step 5 for the investigation procedure
+(keep investigating until the doubt is resolved or, if it persists, becomes
+the finding's closing point). Never hedge a finding you didn't investigate.
 
 ## No bugs found
 
