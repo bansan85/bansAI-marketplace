@@ -27,26 +27,28 @@ Two rules govern every git command below, and every command you add:
 
 ## 1. Check the repository state
 
-Record the starting point for the final report —
-`git rev-parse -q --verify HEAD`. It fails on an unborn branch (no commit
-yet); that is fine, note it and carry on.
-
-Then check for an operation in progress. Do **not** match English prose
-from `git status`: that output is translated, so a localized git would
-defeat the check silently. Test git's own state files instead, which are
-locale-independent:
+Run these together in one call — none depends on another's output:
 
 ```
+git rev-parse -q --verify HEAD
 ls "$(git rev-parse --git-dir)"
+git symbolic-ref -q HEAD
+git -c core.quotePath=false status --porcelain -uall
 ```
 
-If that listing contains `MERGE_HEAD`, `CHERRY_PICK_HEAD`, `REVERT_HEAD`,
-`rebase-merge/`, `rebase-apply/`, `sequencer/` or `BISECT_LOG`, an
-operation is in progress: stop and tell the user which one, without
-staging or committing anything. Same stop if the porcelain listing shows
-an unmerged path (`UU`, `AA`, `DD`, or any code containing `U`), or if
-`git symbolic-ref -q HEAD` fails — that means a detached HEAD, where new
-commits would not belong to any branch.
+- **HEAD**: record it as the starting point for the final report. Failing
+  is fine on an unborn branch (no commit yet) — note it and carry on.
+- **`ls` on the git dir**: if it contains `MERGE_HEAD`, `CHERRY_PICK_HEAD`,
+  `REVERT_HEAD`, `rebase-merge/`, `rebase-apply/`, `sequencer/` or
+  `BISECT_LOG`, an operation is in progress — stop and tell the user which
+  one, without staging or committing anything. Test these state files, not
+  English prose from `git status`: that output is translated, so a
+  localized git would defeat a prose-based check silently.
+- **`symbolic-ref`**: failing means a detached HEAD, where new commits
+  would not belong to any branch — stop.
+- **The porcelain listing**: stop if it shows an unmerged path (`UU`,
+  `AA`, `DD`, or any code containing `U`). Otherwise hold onto it — step 4
+  reuses it verbatim whenever step 3 commits nothing.
 
 ## 2. Take the user's explicit instructions first
 
@@ -78,11 +80,8 @@ invoke the **git-commit-already-added** skill on it right away, exactly as
 it stands. Do not add paths to it, do not unstage anything from it, and do
 not fold any of it into the groups of step 5.
 
-This is by design, not a fallback: a pre-existing index is treated as one
-single block and becomes exactly one commit, whatever it contains and
-however many concepts it spans. Its boundaries were chosen by someone
-else, and re-cutting them would discard that intent. Two consequences to
-accept and, when they matter, to mention in the final report:
+Two consequences to accept and, when they matter, to mention in the final
+report:
 
 - That commit comes first, so the dependency ordering of step 5 cannot
   apply to it. If it depends on changes that are still unstaged, the
@@ -92,10 +91,6 @@ accept and, when they matter, to mention in the final report:
 
 Tell the user this commit is being created from content they staged
 themselves, before you continue.
-
-Doing this first also removes an ambiguity later: once it is committed,
-any remaining unstaged hunk in the same file is cleanly separated from it
-by git.
 
 ## 4. Determine the scope of the remaining changes
 
@@ -111,9 +106,11 @@ Unless step 2 established an explicit scope, which replaces this one:
 - If it is empty — the conversation made no file changes, e.g. a pure
   discussion or a read-only investigation — the scope is every pending
   change in the working tree.
-- Run `git -c core.quotePath=false status --porcelain -uall` to enumerate
-  unstaged modifications, untracked files, deletions and renames, and
-  intersect that with the scope above.
+- If step 3 committed anything, re-run
+  `git -c core.quotePath=false status --porcelain -uall` — committing
+  changed the tracked state. Otherwise reuse step 1's listing as-is.
+  Enumerate unstaged modifications, untracked files, deletions and
+  renames from it, and intersect that with the scope above.
 - A file you changed that does not appear in that listing is ignored by
   `.gitignore`. Do not try to force it in: name it to the user instead,
   so a silently dropped file never looks like a committed one.
@@ -129,9 +126,9 @@ One group per **concept**: the minimal, coherent set of changes that
 answers one single change intention — what an atomic commit would contain
 on its own. Two different bug fixes are two concepts; a config edit and an
 unrelated one-line code change are two concepts; refactoring a function
-and adapting all its callers is one concept. (Same definition as
-`../git-commit-already-added/references/message-style.md`, repeated here
-so this skill does not depend on that file being installed alongside it.)
+and adapting all its callers is one concept. (Mirrors the definition in
+`../git-commit-already-added/references/message-style.md`; duplicated
+here so this skill works standalone.)
 
 - Decide groupings from the actual diff content (`git diff` for tracked
   paths, file contents for untracked ones), not from file names or
@@ -147,8 +144,8 @@ so this skill does not depend on that file being installed alongside it.)
 - Order the groups so a commit never depends on something introduced by a
   later one (e.g. a helper before its caller).
 - Before creating the first commit, state the planned breakdown in one
-  line per group. It costs nothing and lets the user redirect a bad split
-  before it becomes history.
+  line per group, so the user can redirect a bad split before it becomes
+  history.
 
 ## 6. Stage and commit each group, one at a time
 

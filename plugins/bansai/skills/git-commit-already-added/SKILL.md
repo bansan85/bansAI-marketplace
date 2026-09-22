@@ -7,100 +7,89 @@ description: Draft a commit message from content that is already staged (git add
 
 Write a commit message using **only what is already in the git index**
 (`git add` has already been run). Never stage additional files, never
-unstage anything, and never look at unstaged working-tree changes as
-input for the message.
+unstage anything, never use unstaged working-tree changes as input.
 
-Exception: if the user asks to **amend** the previous commit, the
-content to summarize is what the amended commit will contain once the
-index is folded into it — see step 2.
+Exception: when amending, the content to summarize is what the amended
+commit will contain once the index is folded into it — see step 2.
 
 ## 1. Check the repository state
 
-Run `git status`. If it reports an operation in progress — unmerged
-paths, "You are currently rebasing", "You are currently cherry-picking",
-"You are currently reverting", "you are still merging" — stop and tell
-the user which operation is in progress. Do not draft a message and do
-not commit: git has already prepared its own message for those cases,
-and amending a commit that is being replayed would rewrite it.
+Run `git status && git diff --cached --stat` in one call.
 
-Then run `git diff --cached --stat`. If it is empty and the user is not
-amending, tell the user nothing is staged and stop — do not run
-`git add` on their behalf. If it is empty and the user *is* amending,
-continue: this is a pure reword of the previous commit's message.
+- If `git status` reports an operation in progress — unmerged paths,
+  "You are currently rebasing/cherry-picking/reverting", "you are
+  still merging" — stop and tell the user which operation is in
+  progress. Don't draft a message or commit: git already prepared its
+  own message for these cases, and amending a commit being replayed
+  would rewrite it.
+- If the diff stat is empty and the user is not amending: tell them
+  nothing is staged and stop — don't run `git add` on their behalf.
+- If the diff stat is empty and the user *is* amending: continue, this
+  is a pure reword of the previous commit's message.
 
 ## 2. Read the staged change as one block
 
-For a normal commit, run `git diff --cached` and read it as a single
-unit of work.
+Normal commit: run `git diff --cached` and read it as a single unit of
+work.
 
-When amending, do not read two diffs: an amend produces one tree, not
-two stacked patches, so read the exact content the amended commit will
-hold.
+Amend: an amend produces one tree, not two stacked patches — read the
+exact content the amended commit will hold, not two diffs.
 
-- First check that the previous commit is not a merge commit:
-  `git rev-parse --verify -q HEAD^2`. If it succeeds, HEAD is a merge
-  commit — refuse to amend it, tell the user, and stop.
-- Then find the parent to diff against: `git rev-parse --verify -q HEAD^`.
-  - If it succeeds, run `git diff --cached -M HEAD^`.
-  - If it fails, HEAD is the root commit (`HEAD^` and `HEAD~1` would
-    abort with `fatal: ambiguous argument`). Diff against the empty
-    tree instead:
+- Refuse to amend a merge commit: `git rev-parse --verify -q HEAD^2`.
+  If it succeeds, HEAD is a merge commit — tell the user and stop.
+- Find the parent to diff against: `git rev-parse --verify -q HEAD^`.
+  - Succeeds → `git diff --cached -M HEAD^`.
+  - Fails → HEAD is the root commit (`HEAD^`/`HEAD~1` would abort with
+    `fatal: ambiguous argument`) — diff against the empty tree:
     `git diff --cached -M 4b825dc642cb6eb9a060e54bf8d69288fbee4904`.
-- Read the previous message with `git log -1 --format=%B`, so you can
-  keep what still applies and deliberately replace what does not.
+- Read the previous message with `git log -1 --format=%B`, to keep
+  what still applies and deliberately replace what does not.
 
-Only split the change into several independent concepts if they are
-genuinely unrelated (see the definition of a concept in
-`references/message-style.md`). If there are several independent
-concepts, describe each one in its own paragraph, and try to name all
-of them in the title if it still fits in 50 characters; otherwise pick
-the umbrella framing that covers all of them.
+Only split into several concepts if they are genuinely unrelated (see
+the definition of a concept in `references/message-style.md`). With
+several concepts, give each its own paragraph and name all of them in
+the title if it still fits in 50 characters; otherwise pick the
+umbrella framing that covers them.
 
 ## 3. Infer the repository's commit style
 
-Check whether history exists at all: `git rev-parse --verify -q HEAD`.
-If it exits non-zero this is the initial commit — `git log` would abort
-with `fatal: your current branch ... does not have any commits yet`
-(exit 128), not return empty output. In that case skip the inference,
-use Conventional Commits, and write in the user's language.
+Run `git rev-parse --verify -q HEAD && git log -n 10 --no-merges --format="%B---END---"`
+in one call. Non-zero exit (not empty output — `git log` on an
+empty repo aborts with `fatal: your current branch ... does not have
+any commits yet`, exit 128) means this is the initial commit: skip
+inference, use Conventional Commits, write in the user's language.
 
-Otherwise run `git log -n 10 --no-merges --format="%B---END---"` and
-deduce. Merge commits are excluded: their message is generated
-automatically by git, not written by the user, so it carries no
-signal about the user's style. This prints the full body of each
-commit, not just the subject: for the title-only checks below (prefix,
-casing, length) read just the first line of each block; for the
-**Trailer block** check further down, read the whole block, since a
-trailer lives in the body and would never show up in a subject-only
-format like `%s`.
+Otherwise deduce from the log output — it prints each commit's full
+body, not just the subject (merge commits are excluded: their message
+is generated by git, not the user, so it carries no style signal):
+read just the first line of each block for the title-only checks below
+(prefix, casing, length); read the whole block for the trailer check,
+since a trailer lives in the body.
 
 - **Type prefix**: only use a Conventional Commits type (`fix:`,
   `feat:`, `chore:`, …) in the title if recent history already uses
-  that convention consistently. Don't introduce it if the history
-  doesn't have it. When the convention is in use, it applies in full:
-  carry a `(scope)` if the history uses scopes, and mark a
+  it consistently — don't introduce it otherwise. When in use, apply
+  it in full: carry a `(scope)` if the history uses scopes, and mark a
   backward-incompatible change with `!` after the type/scope plus a
   `BREAKING CHANGE:` footer — see `references/message-style.md`.
-- **Language**: write the message in the same language as the commit
-  history. If there is no history (first commit) or the signal is
-  unclear, use the language the user is speaking in the current
-  conversation instead — not the language of this skill file.
+- **Language**: write in the same language as the commit history. No
+  history (first commit) or unclear signal → use the language the
+  user is speaking in the current conversation, not this skill file.
 - **Casing and punctuation**: match whether titles start with a
   capital or lowercase letter, and whether they end with a period.
 - **Title length**: 50 characters is a hard ceiling, not a target.
   Keep the title as short as it can be while still naming the change,
-  even if past titles in this repo ran longer. The type prefix, the
-  scope and any trailing period all count towards the 50.
-- **Trailer block**: this only concerns trailers you would add on your
-  own initiative, chiefly this session's required attribution footer —
-  insert one only if that same trailer already appears in the history
-  checked above (e.g. a prior `Co-Authored-By:` line); if the
-  repository has never used it, leave it out. This does not apply to
-  `BREAKING CHANGE:`, which is mandatory whenever the change is
-  backward-incompatible under Conventional Commits, regardless of
-  history, nor to a trailer the user or the diff explicitly supplies
-  (e.g. `Closes #123`). See the "Trailer block (footer)" section of
-  `references/message-style.md`.
+  even if past titles ran longer. Type prefix, scope and trailing
+  period all count towards the 50.
+- **Trailer block**: this only concerns trailers you'd add on your own
+  initiative, chiefly this session's required attribution footer —
+  add it only if that same trailer already appears in the history just
+  checked (e.g. a prior `Co-Authored-By:` line); if the repository has
+  never used it, leave it out. Exceptions: `BREAKING CHANGE:` is
+  always mandatory for a backward-incompatible change regardless of
+  history, and a trailer the user or the diff explicitly supplies
+  (e.g. `Closes #123`) always goes in. Full formatting rules in the
+  "Trailer block (footer)" section of `references/message-style.md`.
 
 ## 4. Draft the message
 
@@ -111,26 +100,26 @@ punctuation, title length).
 
 ## 5. Create the commit
 
-Commit exactly the staged content — do not run `git add` first. Commit
-directly: do not ask the user to approve the draft beforehand, the
-final message is shown back in step 6.
+Commit exactly the staged content — do not run `git add` first, and do
+not ask the user to approve the draft beforehand (the final message is
+shown back in step 6).
 
 When amending, first capture the current hash so it can be reported
 later: `git rev-parse --short HEAD`.
 
 Never pass the message with `-m`. Write it to a temporary UTF-8 file in
-the session scratchpad with the Write tool and pass that file to git:
+the session scratchpad with the Write tool and pass that file to git;
+delete the file afterwards:
 
 - new commit: `git commit -F <file>`
 - amend: `git commit --amend -F <file>`
 
 This is the only form that behaves identically on Windows and Linux,
 preserves multi-line formatting exactly, and cannot mangle accented
-characters. Delete the temporary file afterwards.
-
-If you pass the message through the shell instead, the here-document
-delimiter **must** be quoted, otherwise the shell expands `$VAR` and
-executes backticks found in the message before git ever sees it:
+characters. If you pass the message through the shell instead, the
+here-document delimiter **must** be quoted, otherwise the shell
+expands `$VAR` and executes backticks found in the message before git
+ever sees it:
 
 - bash / Git Bash: `git commit -F - <<'MSG'` … then `MSG` at column 0
 - PowerShell: a single-quoted here-string piped in — `@'` … then `'@`
@@ -138,15 +127,12 @@ executes backticks found in the message before git ever sees it:
 
 Never use an unquoted `<<EOF`.
 
-Append this session's required commit attribution footer, as part of
-the trailer block described in `references/message-style.md`, only if
-step 3 found that the repository's history already carries that same
-trailer. Otherwise leave it out.
+Append the attribution trailer only if step 3 found it already in the
+repository's history (see the Trailer block bullet above).
 
 ## 6. Report back
 
-Show the user the message exactly as git stored it — a `commit-msg`
-hook may have rewritten it — with
-`git --no-pager log -1 --format=%B`, followed by the commit hash
-(`git rev-parse --short HEAD`). When amending, report both the
-pre-amend hash captured in step 5 and the new one.
+Show the user the message exactly as git stored it (a `commit-msg`
+hook may have rewritten it) together with the short hash, in one call:
+`git --no-pager log -1 --format="%h%n%B"`. When amending, also report
+the pre-amend hash captured in step 5.
