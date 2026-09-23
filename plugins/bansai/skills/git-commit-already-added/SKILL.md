@@ -93,10 +93,27 @@ since a trailer lives in the body.
 
 ## 4. Draft the message
 
-Read `references/message-style.md` and follow it to produce the title
-and body — message text only, no extra commentary. Apply on top of it
-the style detected in step 3 (type prefix and scope, language, casing,
-punctuation, title length).
+Call Read on `references/message-style.md` now, in this turn, even if
+you already know its rules or read it earlier in this session — do not
+draft from memory, from generic commit-message conventions, or from
+what the repository's history alone suggests. This file's rules (what
+counts as one concept, when a paragraph gets numbered, describing
+effect instead of the diff) are stricter and more specific than
+generic style knowledge, and are the only authority for content. Step
+3 governs style (prefix, language, casing, length) only; it never
+supersedes this file on content or structure.
+
+Follow it to produce the title and body — message text only, no extra
+commentary. Apply on top of it the style detected in step 3 (type
+prefix and scope, language, casing, punctuation, title length).
+
+Before moving to step 5, work through the "Final self-check" list at
+the end of `references/message-style.md` against your draft, point by
+point, and fix anything that fails. In particular: recount how many
+concepts the diff actually contains (merge paragraphs that describe
+the same single change intention rather than splitting by file or by
+sentence), and confirm `(X/N)` numbering is present if and only if more
+than one concept paragraph remains.
 
 ## 5. Create the commit
 
