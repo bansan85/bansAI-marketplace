@@ -93,7 +93,6 @@ one concept.
   divide by zero, race condition, etc.) — but only when it accurately
   describes the flaw. Use it in the title as well as in the bug
   paragraph, e.g. `fix: close use-after-free in NO_CACHE read buffer`.
-  The 50-character ceiling still applies.
 
 ## Conventional Commits
 
@@ -125,7 +124,7 @@ backward-incompatible change, regardless of history.
 
 **A trailer wraps only when its value is free prose.** In practice that
 means `BREAKING CHANGE:` and nothing else: its text varies in length, so
-it obeys the 72-character limit like the rest of the message — wrap it
+it obeys the ≤ 72-character limit like the rest of the message — wrap it
 and indent each continuation line by two spaces, so the footer still
 reads as a single entry.
 

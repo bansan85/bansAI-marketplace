@@ -48,8 +48,8 @@ exact content the amended commit will hold, not two diffs.
 Only split into several concepts if they are genuinely unrelated (see
 the definition of a concept in `references/message-style.md`). With
 several concepts, give each its own paragraph and name all of them in
-the title if it still fits in 50 characters; otherwise pick the
-umbrella framing that covers them.
+the title if it still fits in at most 50 characters; otherwise pick
+the umbrella framing that covers them.
 
 ## 3. Infer the repository's commit style
 
@@ -77,10 +77,10 @@ since a trailer lives in the body.
   user is speaking in the current conversation, not this skill file.
 - **Casing and punctuation**: match whether titles start with a
   capital or lowercase letter, and whether they end with a period.
-- **Title length**: 50 characters is a hard ceiling, not a target.
-  Keep the title as short as it can be while still naming the change,
-  even if past titles ran longer. Type prefix, scope and trailing
-  period all count towards the 50.
+- **Title length**: at most 50 characters. Keep the title as short as
+  it can be while still naming the change, even if past titles ran
+  longer. Type prefix, scope and trailing period all count towards the
+  50.
 - **Trailer block**: this only concerns trailers you'd add on your own
   initiative, chiefly this session's required attribution footer —
   add it only if that same trailer already appears in the history just
