@@ -7,14 +7,14 @@
   },
   "metadata": {
     "description": "All my skills",
-    "version": "0.0.13"
+    "version": "0.0.14"
   },
   "plugins": [
     {
       "name": "bansai",
       "source": "./plugins/bansai",
       "description": "All my skills",
-      "version": "0.0.13",
+      "version": "0.0.14",
       "author": {
         "name": "bansan",
         "email": "github@le-garrec.fr"
