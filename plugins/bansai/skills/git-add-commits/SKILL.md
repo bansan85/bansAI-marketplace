@@ -127,7 +127,7 @@ answers one single change intention — what an atomic commit would contain
 on its own. Two different bug fixes are two concepts; a config edit and an
 unrelated one-line code change are two concepts; refactoring a function
 and adapting all its callers is one concept. (Mirrors the definition in
-`../git-commit-already-added/references/message-style.md`; duplicated
+step 2 of `../git-commit-already-added/SKILL.md`; duplicated
 here so this skill works standalone.)
 
 - Decide groupings from the actual diff content (`git diff` for tracked
