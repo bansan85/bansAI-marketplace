@@ -50,7 +50,9 @@ single change intention — what an atomic commit would contain on its
 own. Two different bug fixes landing in the same commit are two
 concepts. A config file edit and an unrelated one-line code change are
 two concepts. Refactoring a function and adapting all its callers is
-one concept.
+one concept. Group by change intention, never by file or by sentence:
+changes that serve the same intention form one concept even when they
+span several files.
 
 Only split into several concepts if they are genuinely unrelated. With
 several concepts, give each its own paragraph and name all of them in
@@ -99,13 +101,13 @@ since a trailer lives in the body.
 
 ## 4. Draft the message
 
-Produce the title and body — message text only, no extra commentary —
-by following every rule of this step. Do not draft from memory, from
-generic commit-message conventions, or from what the repository's
-history alone suggests: these rules (what counts as one concept, when
-a paragraph gets numbered, describing effect instead of the diff) are
-stricter and more specific than generic style knowledge, and are the
-only authority for content and structure.
+Produce the title and body — message text only: no preamble, no code
+fences, no explanation — by following every rule of this step. Do not
+draft from memory, from generic commit-message conventions, or from
+what the repository's history alone suggests: these rules (what counts
+as one concept, when a paragraph gets numbered, describing effect
+instead of the diff) are stricter and more specific than generic style
+knowledge, and are the only authority for content and structure.
 
 The style detected in step 3 (type prefix, scope, language, casing,
 punctuation, title length) is applied on top of these rules and wins
@@ -373,32 +375,13 @@ found is process narration, the latency cause and the speed-up were
 never measured, the rejected alternatives are explicitly banned, and
 nobody supplied issue 482.
 
-### Final self-check
+### Review the draft
 
-Before moving to step 5, work through this list against your draft,
-point by point, and fix anything that fails:
-
-1. The title is a single line of at most 50 characters, prefix and
-   scope included, and opens with an action verb.
-2. A blank line follows the title.
-3. Every line is at most 72 characters, except a trailer whose value
-   is one atomic token (identity, URL, hash, id), which stays on a
-   single line. Among trailers, only `BREAKING CHANGE:` wraps.
-4. No paragraph exceeds 5 lines.
-5. The concept count is right: recount how many concepts the diff
-   actually contains, merging paragraphs that describe the same single
-   change intention rather than splitting by file or by sentence.
-6. `(X/N)` appears at the start of every concept paragraph if and only
-   if more than one concept paragraph remains.
-7. The output contains the message only — no preamble, no code fences,
-   no explanation.
-8. The body says nothing about how the change was found or made, and
-   names no function, member variable or class that a plain
-   description of its role could replace.
-9. In a bug fix, no clause of the fix paragraph merely negates a
-   condition already stated in the bug paragraph (e.g. "so X no
-   longer happens", "instead of Y") — every clause states the fix's
-   mechanism or genuinely new information.
+Before moving to step 5, re-read the draft against every rule of
+Structure, Conventional Commits and Trailer block, one rule at a time,
+and fix anything that fails. In particular, recount the concepts the
+diff actually contains and check that `(X/N)` is present if and only
+if more than one concept paragraph remains.
 
 ## 5. Create the commit
 
