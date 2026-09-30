@@ -143,9 +143,16 @@ structure.
   indispensable to understand the diff.
 - **Context paragraph (optional)**: if useful, one leading paragraph
   stating the context — the problem, motivation, or reason the change
-  was needed. Include it only if it adds information the concept
-  paragraph(s) don't already convey; if it would just restate the
-  concept, drop it and start directly with the concept paragraph(s).
+  was needed. Include it only if it adds information neither the title
+  nor the concept paragraph(s) already convey; if it would just
+  restate them, drop it and start directly with the concept
+  paragraph(s).
+  It must be 100% factual: every claim must be something the user
+  literally said in the conversation or something the diff shows. Never
+  infer, assume or fill in a plausible reason (constraints, workflow,
+  timing, causes) the user did not state. Cut the unfounded claim, not
+  the paragraph: keep whatever factual content remains if it adds
+  something the title and the concept paragraph(s) don't already say.
 - **Concept paragraph(s)**: one paragraph per concept stating what the
   commit actually changes — the solution itself, not just the problem
   it addresses. Describe the finality, not the diff: state what goes
@@ -245,21 +252,6 @@ counted in `N`, and not subject to the paragraph-length rule.
 
 ### Examples
 
-#### Good — context paragraph plus a single concept paragraph
-
-```
-Fix stale cache after a config reload
-
-Reloading the configuration rebuilt the resolver but left the
-previous entries in the lookup cache, so requests kept being
-routed with the old rules until the process restarted.
-
-Invalidate the lookup cache as part of the reload, so a reload
-takes effect on the next request instead of the next restart.
-
-Co-Authored-By: Someone <someone@example.com>
-```
-
 #### Good — two unrelated concepts, numbered
 
 ```
@@ -288,12 +280,6 @@ fill it on first use. Logical constness is preserved: the value
 an accessor returns is unchanged, only the first call is slow.
 ```
 
-#### Good — title only, no body
-
-```
-Fix a missing plural in a comment
-```
-
 #### Good — breaking change under Conventional Commits
 
 ```
@@ -307,16 +293,6 @@ than kept as an alias.
 BREAKING CHANGE: retreive_config() no longer exists. Call
   retrieve_config() instead — the arguments and the return type
   are unchanged, so migrating is a rename.
-```
-
-#### Bad — restates the diff as code, and pads the body for no reason
-
-```
-Update auth.ts
-
-Changed the isValid function to also check expiresAt and added a
-new refreshToken function that calls the /refresh endpoint and
-sets this.token. Also removed an unused import.
 ```
 
 #### Bad — fix paragraph tacks on a negated restatement of the bug
@@ -355,25 +331,27 @@ the batched git show fails. Catch the same failure when fetching
 an object's content for preview, and show a placeholder message.
 ```
 
-#### Bad — invents information the diff does not contain
+#### Bad — context paragraph invents a reason the user never gave
+
+User request: "Split FEA-037 in two. FEA-037 must contain ONLY the
+low-temperature acquisition and FEA-041 ONLY the high-temperature
+one. Update all documents."
 
 ```
-fix(cache): invalidate entries on reload
+Split FEA-037 into a 15 °C and a 40 °C FEA
 
-The problem was found during a code review. It is probably the
-cause of the latency spikes reported last month, and lookups
-should now be about twice as fast.
-
-We first considered dropping the cache entirely, then adding a
-TTL, before settling on explicit invalidation.
-
-Closes #482
+Each end of the operating temperature range needs the whole bench
+brought to its own ambient temperature, and the two runs are
+qualified on separate days.
 ```
 
-Not one of those statements comes from the diff: where the bug was
-found is process narration, the latency cause and the speed-up were
-never measured, the rejected alternatives are explicitly banned, and
-nobody supplied issue 482.
+The user never said the bench must be re-conditioned or that the runs
+happen on separate days: that is a plausible guess, not a fact. Cut
+those claims, then check what is left against the title: if the
+remaining stated facts add nothing to it, drop the paragraph; if they
+do (here, that FEA-037 keeps ONLY the low-temperature acquisition and
+the new FEA-041 ONLY the high-temperature one), rewrite the paragraph
+with those facts alone.
 
 ### Review the draft
 
