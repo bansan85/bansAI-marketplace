@@ -399,3 +399,7 @@ Show the user the message exactly as git stored it (a `commit-msg`
 hook may have rewritten it) together with the short hash, in one call:
 `git --no-pager log -1 --format="%h%n%B"`. When amending, also report
 the pre-amend hash captured in step 5.
+
+Output only that: the full commit text (title, body and trailers, not
+just the title) and the hash. Add no other comment, and in particular
+do not mention an omitted trailer.
