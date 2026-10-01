@@ -64,14 +64,26 @@ Integer widths depend on the platform, so the verdict of every cast does too.
 If the user's request does not give this information, ask. Never guess. In a
 non-interactive session without it, stop and say why.
 
-1. **Family** (multiple choice, with the question tool if available):
+The questions come in **two successive rounds**. The details depend on the
+families chosen, so they can only be asked after the user has answered the
+first round. Never put a family question and a detail question in the same
+call to the question tool.
+
+1. **Round 1: the families, and nothing else.** One multiple-choice question
+   (with the question tool if available), skipped if the request already names
+   the families:
    - **PC**: desktop, server, Android, iOS, and GPU code (OpenCL, CUDA/HIP/SYCL,
      Metal).
    - **Embedded**: microcontrollers and DSPs, bare-metal or RTOS.
    - **Exotic**: legacy or exotic hardware (DOS/Win16, mainframes, non-x86/ARM
      servers, WebAssembly, eBPF, CHERI...).
-2. **Details**, one round per selected family, skipping what the request already
-   says. The lists are examples: ask what changes a verdict.
+
+   Wait for the answer.
+2. **Round 2: the details of the selected families only**, in a new call. Ask
+   nothing about a family that was not selected, and offer no option that
+   belongs to another family (no Windows / Linux choice when only Embedded is
+   selected). Skip what the request already says. The lists are examples: ask
+   what changes a verdict.
    - PC: 32-bit builds supported (x86, ARM32)? Which OS (Windows is LLP64,
      Linux/macOS/Android/iOS are LP64)? GPU code in scope? Size-changing
      options (`-fshort-wchar`, `-D_FILE_OFFSET_BITS=64`, `-D_TIME_BITS=64`)?
@@ -80,6 +92,10 @@ non-interactive session without it, stop and say why.
      options (`-mint8`, memory model near/far/large...)? Is the code shared with
      a PC build?
    - Exotic: which exact platform, ABI or data model, compiler?
+
+   If a detail answer opens a further question that only it makes relevant
+   (for example the toolchain once the word size is known), ask it in a third
+   call.
 3. "Don't know" means the broader set: take the worst case of the family.
 
 The cast verdict holds only if it holds on **all** selected targets.
