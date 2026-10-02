@@ -1,8 +1,8 @@
 # Bug report format
 
 Reference loaded by the `cpp-bug-hunt` skill when writing the report.
-Write in the **chosen language** (see SKILL.md §1), grouped by **impact
-category**, categories ordered from most to least severe (see below). Adapt
+Write in the **chosen language** (see SKILL.md §1), findings **numbered** and
+sorted by **impact category**, from most to least severe (see below). Adapt
 every label (headings, impact-category names, field names) to that language.
 
 ## Writing style
@@ -40,11 +40,11 @@ pointers, not prose.
 - **Count by impact**: <impact category 1> n · <impact category 2> n · …
   (ordered from most to least severe)
 
-## Findings
+**Analysis limitations**: what couldn't be verified: missing context, unseen
+callers, excluded generated/third-party code, tooling whose exact coverage
+is uncertain…
 
-### <Impact category 1 — most severe>
-
-#### <short title>
+## 1. <short title of the most severe finding>
 
 **Impact**: <impact category>
 **Category**: <Memory / Ownership / Concurrency / UB / STL / Logic>
@@ -84,14 +84,24 @@ without applying it.
 2. …
 ````
 
-(then the next finding in this same impact category, then one section per
-impact category that has findings, in severity order)
+(then the next finding as `## 2. <title>`, and so on)
 
-````markdown
-## Analysis limitations
-What couldn't be verified: missing context, unseen callers, excluded
-generated/third-party code, tooling whose exact coverage is uncertain…
-````
+## Structure and numbering
+
+The report has only **two heading levels**: `#` for the title, `##` for the
+findings. There is **no** "Findings" heading, no "Analysis limitations"
+heading, and no heading per impact category — the impact category is carried
+by each finding's **Impact** field.
+
+- Findings are **sorted from most to least severe** (impact order, see
+  below), then by order of discovery within the same impact category.
+- Each finding's heading is **numbered**: `## <n>. <short title>`, `n`
+  starting at **1** and continuing across the whole report, with no reset.
+  Number **after** consolidation and sorting, so the final list is
+  contiguous. This number is the finding's identifier for anyone who refers
+  back to the report.
+- The analysis-limitations paragraph sits at the end of the introduction,
+  right before the first finding.
 
 ## References
 
@@ -178,9 +188,9 @@ what matters.
 ## Impact categories
 
 Definitions, examples, and severity ordering: `reference/analysis-grid.md`,
-"Impact category" section. Group findings under those six headings (§
-"Findings" above) in that same order, **only including headings that have
-at least one finding**.
+"Impact category" section. Sort findings by those six impact categories in
+that same order (see "Structure and numbering" above); report only the
+categories that have at least one finding.
 
 ## Categories (A–F)
 
@@ -198,16 +208,16 @@ the finding's closing point). Never hedge a finding you didn't investigate.
 ## No bugs found
 
 Write the file **anyway**: the header with its zero counts, the
-"Analysis limitations" section, and an explicit statement that no findings
-were made. A documented absence of bugs is still useful information.
+analysis-limitations paragraph, and an explicit statement that no findings
+were made (no `##` section). A documented absence of bugs is still useful information.
 
 ## Writing in a language other than English
 
 Translate every label — impact-category names (e.g. "Exploitable security
 vulnerability" → "Faille de sécurité exploitable" in French), bug-category
 names, field names (`Reasoning` → "Cheminement", `References` →
-"Références", `Trigger scenario` → "Scénario déclencheur"…) and every
-section heading — into the chosen language, while keeping the same six
+"Références", `Trigger scenario` → "Scénario déclencheur"…) and the
+analysis-limitations label — into the chosen language, while keeping the same six
 impact categories in the same order, the same fields, and the same meaning.
 Reference **numbering and links stay as they are**; only the trailing clause
 of each reference entry is translated.

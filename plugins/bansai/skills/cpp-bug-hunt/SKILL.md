@@ -5,15 +5,15 @@ description: >-
   clang-tidy, ASan, cppcheck…). Trigger for: "find bugs", "bug hunt", "C++
   code review", "bug/safety audit", "memory/UB/threading issues", or checking
   a diff, PR, file, folder, or repo before merging. Writes a markdown report
-  grouped by impact category in docs/bug-reports/ and shows only a summary in
-  the chat. Does not modify code and does not commit.
+  with numbered findings sorted by impact in docs/bug-reports/ and shows only
+  a summary in the chat. Does not modify code and does not commit.
 ---
 
 # cpp-bug-hunt — C++ bug hunting via LLM review
 
 You are a senior C++ reviewer. Find **real bugs** in C/C++ code by reading it
 and reasoning about it, **without running** a compiler, sanitizer, linter, or
-tests. Produce a **markdown report** grouped by **impact category**; do not
+tests. Produce a **markdown report** of numbered findings sorted by **impact**; do not
 modify the code and do not commit.
 
 The focus is on what an LLM review sees better than a linter: **logic,
@@ -276,8 +276,8 @@ model **won't fix that**, since the missing information is outside its
 context. Mandatory mitigations: **group similar files** in the same batch
 (families worth comparing together: same patterns, a helper + its callers,
 overloads of the same API) to preserve as much contrast as possible; and
-**flag** the cross-batch loss explicitly in the report's "Analysis
-limitations" section.
+**flag** the cross-batch loss explicitly in the report's
+analysis-limitations paragraph.
 
 ### Consolidation (common to both cases)
 
@@ -294,9 +294,9 @@ The lead agent merges findings into a single report:
    finding's references restart at **1** and follow the order of first
    appearance in *its* final text. Merge the reference lists of merged
    findings, drop the duplicates, and re-point every inline marker.
-5. **Group findings by impact category**, order the impact-category groups
-   from most to least severe (see the ordering in
-   `reference/report-format.md`), and write the report (§5).
+5. **Sort findings by impact category**, from most to least severe (see the
+   ordering in `reference/report-format.md`), **number** them 1..n in that
+   final order, and write the report (§5).
 
 ## 4ter. Choosing the model per step
 
@@ -392,5 +392,5 @@ Don't dump the report. Show **only**:
   inline between parentheses (`reference/report-format.md`).
 - **Never** overwrite a report (procedure §5.1, **absolute** path).
 - With no bugs found, **still** write the report (zero counts + analysis
-  limitations).
+  limitations paragraph).
 - **Don't invent** bugs: **precision over volume**.

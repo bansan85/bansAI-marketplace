@@ -13,6 +13,12 @@ build/test/format/fuzzer facts, and the bugs of your block. Read the repository'
 source lists, template instantiation, export macros, test helpers. Prefer
 extending existing test scaffolding over adding new scaffolding.
 
+The bug report is temporary and will not be kept. Never mention it, its file
+name, or a finding number or title from it, in code comments, test names,
+fuzzer corpus names or the commit message (including when invoking
+`bansai:git-commit-already-added`). Describe the bug itself. Exception: your
+prompt says the user explicitly asked for such a reference.
+
 Keep a list of every file you create or modify. You need it to revert.
 
 ## 1. Re-check each bug
@@ -113,13 +119,19 @@ Check `git status --porcelain` is empty before you return.
 
 Return a short report, in this shape:
 
+All three of `tests`, `fuzz` and `status` are mandatory, for every status.
+
 - `status`: `fixed`, `already-fixed`, `not-reproducible`, `abandoned` or
-  `commit-failed`. One line per bug of the block if they differ.
+  `commit-failed`. One line per bug of the block if they differ. Say whether
+  the bug was fixed successfully; if not, explain why.
 - `commit`: short hash (for `fixed`).
 - `files`: the files changed or added.
-- `tests`: the regression tests added, and confirmation each failed before and
-  passes after.
-- `fuzz`: the case added, or why there is none.
+- `tests`: the regression tests added, and for each one an explicit
+  confirmation that it failed before the fix (red, for the right reason) and
+  passes after (green). If no test was written, or a test never went through
+  red then green, say so and explain why.
+- `fuzz`: the fuzzer data generated (corpus file, fuzzer change), and
+  confirmation it triggered the bug before the fix. If no data was generated,
+  explain why (no fuzzer in the project, code not reachable from it, other).
 - `notes`: anything the user must know: public API change, existing test
-  updated, configuration not built, doubt about the report's reasoning. For a
-  non-`fixed` status, the reason.
+  updated, configuration not built, doubt about the report's reasoning.

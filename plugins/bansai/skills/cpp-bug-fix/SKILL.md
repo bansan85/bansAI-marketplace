@@ -28,6 +28,12 @@ related bugs, each with a regression test.
   message. You never commit.
 - **Language.** Talk to the user in the user's language. Everything that ends
   up in git MUST be in English: code, comments, test names, commit messages.
+- **No reference to the bug report in git.** The report is temporary and will
+  not be kept. Code comments, test names, fuzzer corpus names and commit
+  messages MUST NOT mention the report, its file name, or a finding number or
+  title from it. Describe the bug itself instead. Exception: the user's
+  request explicitly asks for such a reference. Repeat this rule in the
+  subagent's prompt.
 - Never push, never amend, never rewrite history.
 
 ## 1. Locate the report and check the repository
@@ -48,7 +54,8 @@ related bugs, each with a regression test.
 ## 2. Read the report
 
 The report's labels may be in any language. Read it fully once. For each
-finding keep: a stable id (its title), impact category, bug category,
+finding keep: a stable id (its number in the report, e.g. `3`, taken from its
+`## <n>. <title>` heading), its title, impact category, bug category,
 locations, and a short summary (the reasoning, trigger scenario, suggested
 fix). Also keep the report's header block (scope, date, commit, tooling,
 context paragraph): it is the context passed to subagents.
@@ -87,8 +94,9 @@ order of appearance.
 ## 5. Show the plan, ask what to process
 
 Show the blocks in processing order, numbered. For each: the number, the
-severity, and its findings (title, and the reason for the grouping if there is
-more than one). Mark the ones the state file already resolved as skipped.
+severity, and its findings (original report number **and** title, as
+`#<n> <title>`, and the reason for the grouping if there is more than one).
+Mark the ones the state file already resolved as skipped.
 
 Then ask, in plain text (a list can exceed the option limit of a question
 tool): process all blocks, or only some (by number)? Wait for the answer. In a
@@ -104,12 +112,16 @@ For each block:
    absolute path of `reference/fixer-instructions.md` in this skill's folder
    (with the instruction to read it first), the report header/context, the
    build/test/format/fuzzer facts from `CLAUDE.md`, and for each finding of the
-   block: id, impact, category, locations, summary. Not the rest of the report.
+   block: number, title, impact, category, locations, summary. Not the rest of the report.
 3. When it returns, verify: `git status --porcelain` is empty and HEAD moved
    (if the status is `fixed`), or the tree is clean (any other status). If not,
    stop and tell the user. Do not clean up on your own.
-4. Update the state file. Print one line: block number, status, commit hash.
-5. Go to the next block. A `not-reproducible`, `abandoned` or `commit-failed`
+4. Check the result reports `status`, `tests` (red then green, or why no
+   test) and `fuzz` (data generated, or why none). If one is missing, ask
+   the subagent for it (SendMessage) before going on. Keep them for the final
+   summary.
+5. Update the state file. Print one line: block number, status, commit hash.
+6. Go to the next block. A `not-reproducible`, `abandoned` or `commit-failed`
    block never stops the run, unless step 3 found a dirty tree.
 
 Later blocks run on top of earlier commits, so the code they inspect already
@@ -117,7 +129,9 @@ contains the earlier fixes.
 
 ## 7. Final summary
 
-One table, one row per finding: block, title, status, commit hash. Then, for
+One table, one row per finding: block, original report number and title,
+status, commit hash. Then, for
 each non-`fixed` row, the reason in one sentence, and what the user can do
 (for example fix it manually, or relaunch the skill to retry an `abandoned`
-block). Mention the fuzzer cases added and the findings that could not get one.
+block). Also state, per block, the regression tests (red then green, or why
+none) and the fuzzer data added (or why none).
