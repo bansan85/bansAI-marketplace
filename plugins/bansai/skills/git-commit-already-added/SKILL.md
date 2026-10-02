@@ -9,8 +9,11 @@ Write a commit message using **only what is already in the git index**
 (`git add` has already been run). Never stage additional files, never
 unstage anything, never use unstaged working-tree changes as input.
 
-Exception: when amending, the content to summarize is what the amended
-commit will contain once the index is folded into it — see step 2.
+Exceptions:
+- when amending, the content to summarize is what the amended commit
+  will contain once the index is folded into it — see step 2;
+- step 1b auto-formats the staged changes and re-stages the formatted
+  result of those same lines — nothing else.
 
 ## 1. Check the repository state
 
@@ -26,6 +29,48 @@ Run `git status && git diff --cached --stat` in one call.
   nothing is staged and stop — don't run `git add` on their behalf.
 - If the diff stat is empty and the user *is* amending: continue, this
   is a pure reword of the previous commit's message.
+
+## 1b. Auto-format the staged changes
+
+Skip if nothing is staged. Do not mention any of this to the user until
+step 6.
+
+**Scope**: only the lines the commit changes (`git diff --cached -U0`,
+against `HEAD`; when amending, the newly staged lines only, not the
+previous commit's). A newly added file counts as fully changed. Never
+reformat untouched lines, never touch deleted files.
+
+**Which formatter, per staged file**:
+- C / C++ sources and headers: `clang-format`, only if a `.clang-format`
+  exists at the git root.
+- `CMakeLists.txt` / `*.cmake`: `gersemi` if `.gersemirc` exists at the
+  git root; otherwise find whether and how they are formatted
+  (`cmake-format` config, CLAUDE.md, CI or pre-commit config) and
+  follow it.
+- Any other file type: find whether and how it is formatted
+  (CLAUDE.md, `.editorconfig`, `.pre-commit-config.yaml`, tool config
+  files such as `.prettierrc`, `pyproject.toml`, `rustfmt.toml`, CI
+  scripts) and apply the rules if some exist.
+
+Look first in CLAUDE.md (project root, then user level): if it states
+the formatter and command for a file type, use it without searching
+further. If it is silent, do the search above and remember to ask in
+step 7. No rule found or tool not installed → leave the file as is.
+
+**Applying it to the changed lines only**, working on the **index**
+content (`git show :<path>`), never the working tree, so unstaged edits
+cannot leak into the commit:
+1. If the tool takes line ranges (`clang-format --lines=a:b
+   --assume-filename=<path>`), pass the changed ranges. Otherwise
+   format a copy in full and keep only the formatter's hunks that
+   overlap the changed lines.
+2. Write the result back to the index: `git hash-object -w --stdin`
+   then `git update-index --cacheinfo <mode>,<sha>,<path>`.
+3. If the working-tree file was identical to the index before, also
+   write the formatted content there. Otherwise leave the working
+   tree untouched.
+
+Record which files changed and with which tool, for step 6.
 
 ## 2. Read the staged change as one block
 
@@ -60,6 +105,13 @@ the title if it still fits in at most 50 characters; otherwise pick
 the umbrella framing that covers them.
 
 ## 3. Infer the repository's commit style
+
+First check CLAUDE.md (project root, then user level) for the commit
+style: type prefix (and scopes), language, casing and punctuation,
+title length, trailer block. Every item it states is authoritative —
+use it and don't look for it in the history. If all five are stated,
+skip the `git log` call below entirely. Items it doesn't state are
+inferred from the history as follows, and noted for step 7.
 
 Run `git rev-parse --verify -q HEAD && git log -n 10 --no-merges --format="%B---END---"`
 in one call. Non-zero exit (not empty output — `git log` on an
@@ -363,8 +415,8 @@ if more than one concept paragraph remains.
 
 ## 5. Create the commit
 
-Commit exactly the staged content — do not run `git add` first, and do
-not ask the user to approve the draft beforehand (the final message is
+Commit exactly the staged content — do not run `git add` first (step 1b
+already re-staged the formatted lines), and do not ask the user to approve the draft beforehand (the final message is
 shown back in step 6).
 
 When amending, first capture the current hash so it can be reported
@@ -401,5 +453,18 @@ hook may have rewritten it) together with the short hash, in one call:
 the pre-amend hash captured in step 5.
 
 Output only that: the full commit text (title, body and trailers, not
-just the title) and the hash. Add no other comment, and in particular
-do not mention an omitted trailer.
+just the title) and the hash, followed by one line on the auto-format
+from step 1b (files reformatted and tool used) when it changed
+anything — this is the only place it is mentioned. If the formatted
+working-tree file was left unchanged because of unstaged edits, say so
+in that line. Add no other comment, and in particular do not mention an
+omitted trailer.
+
+## 7. Offer to record missing conventions in CLAUDE.md
+
+Only if step 1b or step 3 had to search or infer something CLAUDE.md
+did not state (formatter and command per file type; type prefix,
+language, casing and punctuation, title length, trailer block): ask the
+user, in a single question listing what was found, whether to add it to
+CLAUDE.md (project root file). On yes, write it there, without staging
+it. Ask nothing if CLAUDE.md already covered everything.
