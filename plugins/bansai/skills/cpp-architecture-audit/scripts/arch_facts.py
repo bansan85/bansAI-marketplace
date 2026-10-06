@@ -6,11 +6,12 @@ examples, tooling and embedded markers, #include / import directives, conditiona
 compilation, TODO markers, git history.
 It is neither a linter nor a static analyzer.
 
-  python arch_facts.py inventory [--root R] [--depth 2] [--exclude X]... [--out F]
+  python arch_facts.py inventory [--root R] [--depth 2] [--tree-depth 3] [--exclude X]... [--out F]
   python arch_facts.py graph [--root R] [--partition F] [--module NAME=PATH[,PATH]]...
                              [--depth 1] [--exclude X]... [--tests-module tests]
                              [--big-module-kb 250] [--churn-months 12]
                              [--examples 1] [--top 5] [--todo-examples 5] [--out F]
+  python arch_facts.py assemble --out F PART...    (concatenates the parts, in order)
 
 --exclude      : folder or file name pattern (e.g. third_party, *.pb.h)
                  or path relative to the root (e.g. src/legacy).
@@ -564,6 +565,42 @@ def dirs_named(files, names):
     return found
 
 
+def tree_lines(files, own, vendor_roots, depth, per_dir=15):
+    """Folders as the `tree` utility draws them, with the number of project C/C++ files."""
+    counts = collections.Counter()
+    for f, _ in own:
+        parts = f.split("/")[:-1]
+        for i in range(1, len(parts) + 1):
+            counts["/".join(parts[:i])] += 1
+    children = collections.defaultdict(set)
+    for f in files:
+        parts = f.split("/")[:-1]
+        for i in range(len(parts)):
+            child = "/".join(parts[:i + 1])
+            children["/".join(parts[:i])].add(child)
+            if child in vendor_roots:
+                break
+    out = ["."]
+
+    def walk(parent, prefix, level):
+        kids = sorted(children.get(parent, ()))
+        shown = kids if len(kids) <= per_dir else sorted(sorted(kids, key=lambda c: -counts[c])[:per_dir])
+        hidden = len(kids) - len(shown)
+        for i, c in enumerate(shown):
+            last = i == len(shown) - 1 and not hidden
+            tag = " (third-party)" if c in vendor_roots else ("  [%d C/C++]" % counts[c] if counts[c] else "")
+            if level >= depth and children.get(c) and c not in vendor_roots:
+                tag += " …"
+            out.append(prefix + ("└── " if last else "├── ") + c.rsplit("/", 1)[-1] + "/" + tag)
+            if level < depth and c not in vendor_roots:
+                walk(c, prefix + ("    " if last else "│   "), level + 1)
+        if hidden:
+            out.append(prefix + "└── … %d other folders" % hidden)
+
+    walk("", "", 1)
+    return out
+
+
 def inventory(args):
     root = os.path.abspath(args.root)
     excludes = [norm_rel(e) for e in args.exclude]
@@ -585,6 +622,11 @@ def inventory(args):
              "- Files listed via: %s" % origin]
     if excludes:
         lines.append("- Requested exclusions: %s" % ", ".join(excludes))
+
+    root_files = [f for f in files if "/" not in f]
+    lines += ["", "## Repository tree (folders; [n] = project C/C++ files below; depth %d)" % args.tree_depth,
+              "```"] + tree_lines(files, own, set(vendor_roots), args.tree_depth) + ["```",
+              "Root files: %s" % (shorten(root_files, 15) or "none")]
 
     per_dir = collections.defaultdict(lambda: [0, 0, 0])  # interfaces, implementations, interface bytes
     for f, k in own:
@@ -1251,6 +1293,16 @@ def graph(args):
          % (len(cfiles), len(modules), len(mod_edges), len(module_cycles), len(file_cycles)))
 
 
+def assemble(args):
+    parts = []
+    for path in args.parts:
+        if not os.path.isfile(path):
+            sys.exit("Missing part: %s" % path)
+        with open(path, encoding="utf-8") as fh:
+            parts.append(fh.read().strip("\n"))
+    emit(["\n\n".join(parts)], args.out, "%d parts" % len(parts))
+
+
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -1262,6 +1314,7 @@ def main():
     common.add_argument("--out", help="output file (default: standard output)")
     inv = sub.add_parser("inventory", parents=[common], help="repository inventory")
     inv.add_argument("--depth", type=int, default=2, help="depth of the per-folder count")
+    inv.add_argument("--tree-depth", type=int, default=3, help="depth of the repository tree")
     gra = sub.add_parser("graph", parents=[common], help="dependencies, cycles, history")
     gra.add_argument("--partition", help="file of 'name: path, path' lines (one per module)")
     gra.add_argument("--module", action="append", default=[], help="NAME=PATH[,PATH]")
@@ -1273,8 +1326,11 @@ def main():
     gra.add_argument("--examples", type=int, default=1, help="examples per module -> module edge")
     gra.add_argument("--top", type=int, default=5, help="headers listed per module")
     gra.add_argument("--todo-examples", type=int, default=5, help="markers quoted per module")
+    asm = sub.add_parser("assemble", help="concatenate report parts, in the given order")
+    asm.add_argument("--out", required=True, help="output file")
+    asm.add_argument("parts", nargs="+", help="part files, in order")
     args = parser.parse_args()
-    inventory(args) if args.cmd == "inventory" else graph(args)
+    {"inventory": inventory, "graph": graph, "assemble": assemble}[args.cmd](args)
 
 
 if __name__ == "__main__":

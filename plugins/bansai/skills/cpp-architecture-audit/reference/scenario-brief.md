@@ -1,11 +1,11 @@
 # Scenario brief — R3 usage scenarios and tutorial
 
-You write documentation sheets that let a developer understand the system through concrete usage, not through an API reference. The unit is the developer's task, not the function. Write in the language given in the prompt; identifiers, paths and excerpts stay in the project's language.
+You write documentation sheets that let a developer understand the system through concrete usage, not through an API reference. The unit is the developer's task, not the function. Write in the language given in the prompt (plain English by default). Read and apply `${CLAUDE_SKILL_DIR}/reference/writing-style.md`: a reader who does not know the project, friendly tone, no tests mentioned in the sheets. Identifiers, paths and excerpts stay in the project's language.
 
 ## Rules
 
 - **Traced, never invented**: every call stack is traced in the real code: open the functions, note the real `file:line`. An invented stack destroys the value of this documentation. Embedded: register addresses, interrupt priorities and memory ranges are read in the register headers, linker script, RTOS configuration or startup code, never assumed.
-- **Reading**: the project's headers and `.cpp` files needed to trace, the example given, the tests that anchor a scenario. Third-party code: only its API, as a leaf of the stack.
+- **Reading**: the project's headers and `.cpp` files needed to trace, the example given. You may also read the tests that use the API, to understand how it is meant to be called; never cite them in a sheet. Third-party code: only its API, as a leaf of the stack.
 - **Context**: `graph.md`, the batch summaries and R1 give the architecture: do not describe it again, link to R1's sections. The catalog (`docs-plan.md`) gives the number and path of every scenario, for references between sheets.
 - **Factual**: describe what the code does. Intent or domain meaning deduced without certainty is marked "to validate". No judgment, no recommendation. Points of attention are preconditions, invariants and pitfalls observable in the code, with their source.
 - **Read-only**: write only the output given in the prompt; never modify the sources; no build, tests, linter or analyzer.
@@ -86,7 +86,7 @@ A GUI is documented through its screens, interactions and state, not its API. Sa
 |---|---|
 | Task | User journey ("open a file", "edit an item") |
 | Public function | Window, dialog, view or widget (the coverage unit) |
-| Anchoring example | Screenshot or mockup of the journey, if available |
+| Anchoring example | The example or the window's `.ui` / `.qml` file, if any (no screenshot: the audit never runs the application) |
 | "What happens" | What the user sees and does, and what it triggers |
 | Call stack | UI flow: user event → handler or slot → state or model change → effect (backend call, I/O) → view refresh |
 
@@ -95,7 +95,7 @@ A GUI is documented through its screens, interactions and state, not its API. Sa
 > Layer 5 — <what the user accomplishes here, in 1 or 2 sentences>. Window: [MainWindow.cpp:LINE](../../../src/.../MainWindow.cpp#LLINE).
 
 ## Overview
-<screenshot or mockup if available, otherwise description of the view: areas, fields, actions>
+<description of the view: areas, fields, actions, read from the `.ui` / `.qml` / widget code>
 
 ## What the user does
 <3 to 6 lines: the journey step by step from the user's point of view, what each action triggers, and the visual states: loading, empty, error>

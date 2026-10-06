@@ -1,6 +1,6 @@
 # Report 3 — project documentation
 
-Read only if R3 is requested. SKILL.md's rules still apply, in particular rule 1 ("to validate"), rule 4 (complete without overwriting) and rule 7 (language). Goal: documentation true to the code, verifiable, useful to distinct audiences (management, newcomers, developers, integrators, maintainers). A page without real material is not created; a section without content is not written.
+Read only if R3 is requested. SKILL.md's rules still apply, in particular rule 1 ("to validate"), rule 4 (complete without overwriting) and rule 7 (language). Also apply `reference/writing-style.md`: plain English, friendly tone, a reader who does not know the project, no tests mentioned (the only exception: the commands that build and run the checks, in the developer guides). Goal: documentation true to the code, verifiable, useful to distinct audiences (management, newcomers, developers, integrators, maintainers). A page without real material is not created; a section without content is not written.
 
 ## Target tree
 
@@ -14,7 +14,7 @@ docs/
 └── 05-scenarios/      README.md, <family>/NN-<name>.md, gui/ (GUI journeys)
 ```
 
-If a documentation tree already exists (`docs/`, `doc/`, `documentation/`), it is used and its numbering and naming conventions are kept: the layers are mapped onto its pages, and R1 and R2 go into its architecture folder (created as `01-architecture/` if it has none). Everything written in the tree takes the language of the existing documentation (SKILL.md rule 7).
+If a documentation tree already exists (`docs/`, `doc/`, `documentation/`), it is used and its numbering and naming conventions are kept: the layers are mapped onto its pages, and R1 and R2 go into its architecture folder (created as `01-architecture/` if it has none). Everything written in the tree is plain English, except pages that complete an existing documentation written in another language, which keep it (SKILL.md rule 7).
 
 ## Layers per project nature
 
@@ -46,7 +46,7 @@ Recorded by the orchestrator in Step 0 when R3 is requested; if the section is m
 - prerequisites: compilers and minimum versions, CMake minimum version, toolchains, package manager, system packages;
 - build: scripts (path, what they do), presets, manual commands; options from the inventory with their default and their effect (Grep of the option name in the build files);
 - installation and additional packages;
-- tests: how they are built and run, coverage tool;
+- checks: how they are built and run (commands only), coverage tool;
 - examples: how they are built and run;
 - conventions: key formatting, lint and naming settings as configured (`.clang-format`, `.clang-tidy` checks, `.editorconfig`), pre-commit hooks;
 - CI: stages → jobs → role → triggers (branches, tags, merge requests), artifacts, what blocks a merge;
@@ -73,7 +73,7 @@ Sources: `inventory.md`, `graph.md`, `batch-*.md`, `batch-root.md`, R1 (rule 3).
 
 ## Step 8 — Scenarios and tutorial
 
-1. **Feature inventory**: what the project lets a developer do, from the features (F2), the effective interface (graph), the examples (inventory) and the headers included by the tests (graph). An overload or variant with a distinct behavior is a distinct feature. GUI: each window, dialog or view (F23). Embedded: each peripheral driven and each interrupt (F27). Service: each endpoint or message type.
+1. **Feature inventory**: what the project lets a developer do, from the features (F2), the effective interface (graph), the examples (inventory) and the headers included by the tests and examples (graph; tests are read to understand usage, never cited in the pages). An overload or variant with a distinct behavior is a distinct feature. GUI: each window, dialog or view (F23). Embedded: each peripheral driven and each interrupt (F27). Service: each endpoint or message type.
 2. **Catalog**: one scenario per atomic task (granularity rules in `scenario-brief.md`), grouped into families of usage; global numbering NN so that sheets can refer to each other. Each entry: NN, sheet type (scenario, GUI journey, interrupt; a hardware operation is a scenario), title, entry function with `file:line`, feature variant, example to anchor it, features covered. Every feature is reachable from at least one scenario, directly or as a step of a broader one.
 3. **Subagents**: all in a single message, `Agent` tool, `subagent_type: "general-purpose"`, `model: "sonnet"`; up to ~15 scenarios per subagent, a family kept whole when it fits; the tutorial is a separate job. Prompt reduced to:
 
@@ -81,12 +81,12 @@ Sources: `inventory.md`, `graph.md`, `batch-*.md`, `batch-root.md`, R1 (rule 3).
 
    Never copy the brief into the prompt. Each subagent returns a single line. Missing or truncated sheet: relaunch on the missing sheets only.
 4. **Coverage diff**: cross the inventory with the sheets written and the "not traceable" lists returned. A feature not covered is added to an existing scenario as a step when possible (relaunch), otherwise it stays in the catalog marked "not covered — to complete", as does a stack that cannot be traced (generated code, binary). Never silence on a feature.
-5. **`05-scenarios/README.md`**: the call stack legend (copy of the "Legend" block of `scenario-brief.md`); a link to the module map of R1 §3.1 (and its diagram, if any); the catalog, one table per family: # | Scenario | Function | Key chain, with the features not covered; if examples exist, an examples ↔ scenarios table; embedded: link to the interrupt table of R1 §3.5 and list of the interrupt sheets. GUI: `05-scenarios/gui/README.md` with the screen catalog (each screen reachable has its sheet, or "not covered — to complete") and a link to R1 §7.5 for navigation.
+5. **`05-scenarios/README.md`**: the call stack legend (copy of the "Legend" block of `scenario-brief.md`); a link to the module map of R1 §3.1 (and its diagram); the catalog, one table per family: # | Scenario | Function | Key chain, with the features not covered; if examples exist, an examples ↔ scenarios table; embedded: link to the interrupt table of R1 §3.5 and list of the interrupt sheets. GUI: `05-scenarios/gui/README.md` with the screen catalog (each screen reachable has its sheet, or "not covered — to complete") and a link to R1 §7.1 for navigation.
 
 ## Step 9 — Index
 
 `docs/README.md`, completed if it exists (rule 4):
-- table "You are… → Start with…": management → R1 §1, and the R2 summary table if R2 exists; newcomer → getting-started, glossary, tutorial; developer → scenarios, contributing; integrator → API reference, tutorial, R1 §5.5; maintainer → R2 if it exists, R1 §4, contributing;
+- table "You are… → Start with…": management → R1 §1, and the R2 summary table if R2 exists; newcomer → getting-started, glossary, tutorial; developer → scenarios, contributing; integrator → API reference, tutorial, R1 §3.1 and §4.3; maintainer → R2 if it exists, R1 §4, contributing;
 - annotated `docs/` tree;
 - "State of this documentation": project version, commit, branch, date, pages or sections marked "to validate", targeted rereads made after R1 was written (SKILL.md rule 3).
 
@@ -104,8 +104,8 @@ The "to validate / seems obsolete" list of `docs-plan.md` goes into the final me
 ## Templates — layers 02 to 04
 
 - **`02-domain/glossary.md`** — tables term → definition → source, grouped by theme (F26, README, documentation). Banner "⚠️ To validate by a [domain] expert" when definitions are deduced from code. The other pages link here.
-- **`03-guides/getting-started.md`** — prerequisites; build (scripts first, then the manual way); table option → default → effect, from the real build files; installation and additional packages; tests; examples (build and run); embedded: hardware boot configuration (clocks, pins, option bytes or fuses, initialization sequence, from startup code, F27). Consolidates the instructions scattered across READMEs. Pitfalls ⚠️ linked to R1 or R2.
-- **`03-guides/contributing.md`** — conventions (formatting, lint, naming) read in their configuration files; tests; coverage; CI pipeline: Mermaid of the stages and table stage → jobs → role, read in the real CI files; git workflow; ⚠️ observed inconsistencies (Guides facts). Without CI: "local checks".
+- **`03-guides/getting-started.md`** — prerequisites; build (scripts first, then the manual way); table option → default → effect, from the real build files; installation and additional packages; tests; examples (build and run); embedded: hardware boot configuration (clocks, pins, option bytes or fuses, initialization sequence, from startup code, F27). Consolidates the instructions scattered across READMEs. Checks: build and run commands only. Pitfalls ⚠️ linked to R1 or R2.
+- **`03-guides/contributing.md`** — conventions (formatting, lint, naming) read in their configuration files; build and run commands of the checks; coverage; CI pipeline: Mermaid of the stages and table stage → jobs → role, read in the real CI files; git workflow; ⚠️ observed inconsistencies (Guides facts). Without CI: "local checks".
 - **`03-guides/user-guide.md`** (GUI only) — for end users, distinct from the developer guides: what the application lets them do, main windows and their actions, typical journeys linked to the GUI sheets; from F23 and the `.ui` / `.qml` files. Behavior deduced from code is marked "to validate".
 - **`03-guides/usage-tutorial.md`** — written in Step 8 (tutorial job).
 - **`04-api/README.md`** — tool: Doxygen (optionally Sphinx + Breathe); pdoc or Sphinx for Python bindings; prerequisites; generation command, run from the repository root; generated HTML not versioned (build artifact); proposed CI job as a snippet in the page (the CI file is not modified). Annotation state (F22, R1 §11): if few public headers are annotated, annotation is stated as a prerequisite rather than presenting the reference as ready. Service: endpoint or message reference instead of, or besides, Doxygen: endpoint or message | request | response | handler `file:line`, from the contracts or the handlers.

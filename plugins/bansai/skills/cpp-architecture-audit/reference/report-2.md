@@ -1,6 +1,6 @@
 # Report 2 — direction and recommendations
 
-Read only if R2 is requested. SKILL.md's rules still apply; here judgment is allowed, provided it rests on the explicit criteria of this file.
+Read only if R2 is requested. SKILL.md's rules still apply; here judgment is allowed, provided it rests on the explicit criteria of this file. Also apply `reference/writing-style.md`: plain English, friendly tone, no tests mentioned.
 
 ## Step 5 — Architectural direction
 
@@ -14,7 +14,7 @@ Wait for the answer. Chosen style: recommendations consistent with it. Otherwise
 
 ## Step 6 — Writing R2
 
-Sources, exclusively: `inventory.md`, `graph.md`, the `batch-*.md` files, R1 and the answer from Step 5 (SKILL.md rule 3 for any reread). Each issue refers to the R1 finding it is based on (same vocabulary, reference by section), without copying it.
+Sources, exclusively: `inventory.md`, `graph.md`, `synthesis.md`, the `batch-*.md` files, R1 and the answer from Step 5 (SKILL.md rule 3 for any reread). R1 is deliberately short on some topics (binary boundary, ownership, polymorphism, variability, structuring decisions, each principle): R2 takes them from the batch facets and from `synthesis.md`. Each issue refers to the R1 section that covers it (same vocabulary), or, when R1 does not cover it, to the facet (F#) and the module of the summary; it does not copy it.
 
 A defect is described only once, in "Issue details" (P#). The conformance, debt, design patterns, best practices and migration plan sections classify it and refer to its P#, without describing it again.
 
@@ -39,7 +39,7 @@ Length: 1,500 to 5,000 words depending on the project; an issue fits in 5 lines.
 | DIP | a high-level module depends directly on concrete infrastructure classes |
 | DRY | the same logic or knowledge is duplicated across modules |
 | KISS | a flow crosses layers or indirections without observable variation, boundary or decoupling |
-| YAGNI | an abstraction or extension point has a single implementation, none in the tests (Grep its name in the test folders) and no documented need |
+| YAGNI | an abstraction or extension point has a single implementation, no other use found (Grep its name) and no documented need |
 | Law of Demeter | a module manipulates, through an intermediary, types of a module it neither includes directly nor depends on in the build (hidden transitive coupling) |
 | DDD | domain vocabulary inconsistent across modules, or module boundaries unrelated to subdomains (only if DDD is claimed or partially present) |
 | API-first | exposed contracts are defined only by their implementation |
@@ -60,9 +60,11 @@ Out of scope, because they belong to a code review: RAII, smart pointers, rule o
 - external dependencies managed by a package manager or identified submodules, rather than copied code or hard-coded system paths;
 - external dependencies pinned to a version, consistently across manifests, submodules and CI (R1 §2);
 - build options, scripts, build instructions and CI consistent with each other: no documented option missing from the build, no CI job on a missing branch or target (R1 §5.4, `batch-root.md`);
-- shared library: symbols exported explicitly (export macro, hidden visibility by default);
+- shared library: symbols exported explicitly (export macro, hidden visibility by default); API/ABI versioned when the binaries are distributed (F5);
+- ownership of objects that cross a module boundary is stated by the type or documented (F9);
+- polymorphism chosen on purpose: no virtual hierarchy with a single implementation, no template machinery without a second use (F8);
 - public headers free of third-party dependency types, unless those types are part of the documented contract;
-- platform conditional compilation confined to an abstraction layer rather than spread across several modules (graph);
+- platform conditional compilation confined to an abstraction layer rather than spread across several modules (graph, F20);
 - embedded: data shared between interrupts and the main context or tasks goes through an identified protection, and stated timing constraints rest on an observable mechanism (priorities, timing measurement) (R1 §3.5).
 
 ### Technical debt
@@ -70,9 +72,8 @@ Out of scope, because they belong to a code review: RAII, smart pointers, rule o
 A debt is a structural defect whose correction cost grows with time or with each new use (compound interest), unlike an isolated defect. R2 is the only place in the audit where it is qualified.
 
 Handle each type individually; without evidence, write "no debt of this type identified":
-- **design / architecture**: non-compliance with cross-cutting concepts other than SRP and DRY, cycles, gaps between declared dependencies and usage, unprotected sharing between interrupts and tasks (R1 §3.5, §4, §5.3, §5.4);
-- **code**: SRP and DRY non-compliance (unrelated responsibilities, duplication across modules) (R1 §4.1, §4.2);
-- **tests**: high fan-in modules that no test includes (R1 §10; graph, "Modules no test includes");
+- **design / architecture**: non-compliance with cross-cutting concepts other than SRP and DRY, cycles, gaps between declared dependencies and usage, unprotected sharing between interrupts and tasks (F15; R1 §3.5, §5.3, §5.4);
+- **code**: SRP and DRY non-compliance (unrelated responsibilities, duplication across modules) (F1, F16; R1 §4.2);
 - **documentation**: gap between architecture documentation and code; high fan-in modules without documentation (R1 §11);
 - **build / tooling**: unmet best practices related to the build and dependencies (R1 §2, §5.4).
 
@@ -90,7 +91,6 @@ Only if structural changes are recommended (🔴 or 🟠 issues, or target style
 
 ## Skeleton — R2 (`architecture-prioritized-issues.md`)
 
-Section titles are translated into the report's language.
 
 ```markdown
 # Prioritized architecture issues — [project]
@@ -106,10 +106,10 @@ Commit: `[sha]` (branch, clean | modified tree) or "unversioned repository" · D
 | [P1](#p1) | 🔴 | … | … | … |
 
 ## Cross-cutting concepts — conformance
-[each concept kept in R1 §4.1, compliant ones included, individually: verdict, criterion applied, R1 reference, P# if any]
+[each concept of SKILL.md's table that applies to the project, compliant ones included, individually: verdict, criterion applied, evidence from the facets (F#) or R1 reference, P# if any]
 
 ## Structuring decisions — consequences
-[each decision in R1 §4.6: observed consequences on evolvability, build, performance or portability, benefits and costs, P# if any]
+[each decision listed in `synthesis.md` (build type, error model, concurrency model, genericity, ownership…): its documented justification or "not documented", observed consequences on evolvability, build, performance or portability, benefits and costs, P# if any]
 
 ## Architectural technical debt
 ### Typology
@@ -121,7 +121,7 @@ Commit: `[sha]` (branch, clean | modified tree) or "unversioned repository" · D
 
 ## Issue details
 ### <a id="p1"></a>🔴 P1 — [short title]
-- **Finding**: [R1 § reference]
+- **Finding**: [R1 § reference, or F# and module]
 - **Where**: [files, modules]
 - **Architectural impact**: [evolvability, testability, coupling, regression risk…]
 - **Recommendation**: [high-level direction illustrated by real files or classes, no patch]
