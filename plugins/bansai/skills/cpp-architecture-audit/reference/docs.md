@@ -1,0 +1,120 @@
+# L3 to L6 — project documentation
+
+Read in Step 0 when the documentation is requested (layers question, Guides facts), then applied in Steps 7 to 9. SKILL.md's rules still apply, in particular rule 1 ("to validate"), rule 4 (complete without overwriting) and rule 7 (language). Also apply `writing-style.md`: plain English, friendly tone, a reader who does not know the project, no tests mentioned (the only exception: the commands that build and run the checks, in the developer guides). Goal: documentation true to the code, verifiable, useful to distinct audiences (management, newcomers, developers, integrators, maintainers). A page without real material is not created; a section without content is not written.
+
+## Target tree
+
+```
+docs/
+├── README.md            index: points each audience to its entry point
+├── 01-architecture/     L1: architecture-analysis.md
+├── 02-recommendations/  L2: architecture-prioritized-issues.md, if produced
+├── 03-domain/           L3: glossary.md
+├── 04-guides/           L4: getting-started.md, contributing.md, usage-tutorial.md, user-guide.md (GUI)
+├── 05-api/              L5: README.md, Doxyfile
+└── 06-scenarios/        L6: README.md, <family>/NN-<name>.md, gui/ (GUI journeys)
+```
+
+If a documentation tree already exists (`docs/`, `doc/`, `documentation/`), it is used and its numbering and naming conventions are kept: L3 to L6 are mapped onto its pages, L1 goes into its architecture folder (created as `01-architecture/` if it has none), and L2 into a `02-recommendations/` folder created in it. Everything written in the tree is plain English, except pages that complete an existing documentation written in another language, which keep it (SKILL.md rule 7).
+
+## Layers per project nature
+
+L2 is not decided here: it depends only on the scope (SKILL.md, Step 0).
+
+| Project nature | Layers |
+|---|---|
+| Small utility (1 to 3 modules) | L1, L4 `getting-started.md`. No L6 |
+| Internal library | L1 · L4 (getting-started, contributing, tutorial) · L5 if a public surface exists · L6 if the internal flow deserves tracing |
+| Public library or SDK | L1, L3 to L6; L6 by usage scenarios covering every feature; L3 if a domain exists |
+| Service | L1 · L3 if a domain exists · L4 · L5 = endpoint or message reference · L6 = request path, one per endpoint or message type |
+| GUI application | L1 (§7) · L4 getting-started and user-guide · `06-scenarios/gui/`, one sheet per screen or user journey · L3 if a domain exists · no L5 unless a library part exposes an API |
+| Embedded or firmware | L1, L3 to L6 enriched with hardware: L1 §3.5, boot configuration in getting-started, L6 = hardware operations and interrupt sheets; L3 for protocol, sensor or register jargon |
+
+A mixed project (library and GUI) takes the library layers plus `06-scenarios/gui/`. The project's nature decides whether L6 is produced, never how much it covers: once produced, it is exhaustive on the surface concerned.
+
+Other adaptations:
+- bindings (Python, C#, MATLAB…): every exposed language in the tutorial and the scenarios;
+- no domain jargon (F26 empty): no L3;
+- no stable public surface: L5 reduced to a pointer, no generation configuration;
+- no CI: the CI section of `contributing.md` becomes "local checks";
+- no example: the tutorial is built on a test exercising the public API, otherwise no tutorial.
+
+## Step 0 additions
+
+### Layers question
+
+`AskUserQuestion`, `multiSelect: true`. Question: "Documentation for a [nature] in [C | C++ | C and C++][, bindings: …] (evidence: [2 or 3 paths]; existing documentation: [tree or "none"], completed without being overwritten, in [language]). Which layers should be produced besides architecture (L1)? To correct the nature or the language, answer through 'Other'." Options: "Domain glossary (L3)", "Developer guides (L4)", "API reference (L5)", "Usage scenarios (L6, order of magnitude N sheets)"; each option's description says whether the table above recommends it and why. N is estimated from the inventory (public interface files, examples, `.ui` files, interrupt handler files) and refined in Step 8. A correction from the user replaces the nature or language of Step 0.
+
+### Guides facts (`batch-root.md`, "Guides" section)
+
+Source of L4. Recorded by the orchestrator in Step 0; if the section is missing (extraction reused, or documentation chosen later), the orchestrator reads the same files at the start of Step 7 and adds it. Each fact with its source:
+- prerequisites: compilers and minimum versions, CMake minimum version, toolchains, package manager, system packages;
+- build: scripts (path, what they do), presets, manual commands; options from the inventory with their default and their effect (Grep of the option name in the build files);
+- installation and additional packages;
+- checks: how they are built and run (commands only), coverage tool;
+- examples: how they are built and run;
+- conventions: key formatting, lint and naming settings as configured (`.clang-format`, `.clang-tidy` checks, `.editorconfig`), pre-commit hooks;
+- CI: stages → jobs → role → triggers (branches, tags, merge requests), artifacts, what blocks a merge;
+- git workflow: documented branches and merge rules, commit conventions observed in `git log` (read-only);
+- inconsistencies observed between README, scripts, build and CI: already recorded in Step 0 (SKILL.md), completed here with the branches named in CI that do not exist (`git branch -a`).
+
+## Page conventions (all documentation pages)
+
+- First line after the title: `> Layer N — <role of the page>.`
+- Clickable relative links to the code, from the page's location, with a line anchor when useful: `[engine.h](../../include/core/engine.h#L42)`.
+- Domain terms in bold, linked to the glossary on their first occurrence.
+- One page = one audience and one level; a "Further reading" section links the neighboring pages (glossary ↔ scenarios ↔ L1 decisions).
+- Tables for any parameter/value or decision/consequence list; diagrams per SKILL.md's diagrams reference.
+- A ⚠️ marks a pitfall observable in the code or configuration, with its source and a link to L1 or L2 when they cover it.
+
+## Step 7 — Existing documentation and L3 to L5
+
+### 7.1 Existing documentation
+
+When a documentation tree exists:
+1. map it: layers and pages present, their state (complete, draft, empty) and their intent (human notes, "validated by an expert", "to validate" mentions);
+2. coverage diff: public surface and features (F2, graph effective interface) compared with what is documented → missing items;
+3. add what is missing, in the existing style and language;
+4. correct only verifiably false facts (line reference, signature, version, dead link), touching human prose as little as possible;
+5. delete nothing human: what seems obsolete goes into the "to validate / seems obsolete" list (the documentation says X, the code says Y), never into a deletion;
+6. keep existing cross-links and add the new ones.
+
+Write `<work>/docs-plan.md`: existing pages and their state, layers kept, feature inventory, scenario catalog, "to validate / seems obsolete" list. It is updated until Step 9.
+
+### 7.2 Writing L3 to L5
+
+Sources: `inventory.md`, `graph.md`, `batch-*.md`, `batch-root.md`, L1 (rule 3). Pages of the chosen layers, following the page conventions above:
+
+**L3 — domain**
+- **`03-domain/glossary.md`** — tables term → definition → source, grouped by theme (F26, README, documentation). Banner "⚠️ To validate by a [domain] expert" when definitions are deduced from code. The other pages link here.
+
+**L4 — guides** (Guides facts)
+- **`04-guides/getting-started.md`** — prerequisites; build (scripts first, then the manual way); table option → default → effect, from the real build files; installation and additional packages; checks; examples (build and run); embedded: hardware boot configuration (clocks, pins, option bytes or fuses, initialization sequence, from startup code, F27). Consolidates the instructions scattered across READMEs. Checks: build and run commands only. Pitfalls ⚠️ linked to L1 or L2.
+- **`04-guides/contributing.md`** — conventions (formatting, lint, naming) read in their configuration files; build and run commands of the checks; coverage; CI pipeline: Mermaid of the stages and table stage → jobs → role, read in the real CI files; git workflow; ⚠️ observed inconsistencies (Guides facts). Without CI: "local checks".
+- **`04-guides/user-guide.md`** (GUI only) — for end users, distinct from the developer guides: what the application lets them do, main windows and their actions, typical journeys linked to the GUI sheets; from F23 and the `.ui` / `.qml` files. Behavior deduced from code is marked "to validate".
+- **`04-guides/usage-tutorial.md`** — written in Step 8 (tutorial job).
+
+**L5 — API reference**
+- **`05-api/README.md`** — tool: Doxygen (optionally Sphinx + Breathe); pdoc or Sphinx for Python bindings; prerequisites; generation command, run from the repository root; generated HTML not versioned (build artifact); proposed CI job as a snippet in the page (the CI file is not modified). Annotation state (F22, L1 §11): if few public headers are annotated, annotation is stated as a prerequisite rather than presenting the reference as ready. Service: endpoint or message reference instead of, or besides, Doxygen: endpoint or message | request | response | handler `file:line`, from the contracts or the handlers.
+- **`05-api/Doxyfile`** — only if none exists (otherwise the existing one is documented). Paths relative to the repository root, from which the README command runs it: `INPUT` = public header folders (effective interface), `RECURSIVE = YES`, `FILE_PATTERNS` = the interface extensions, `EXCLUDE` = third-party and generated code, `OUTPUT_DIRECTORY` = a non-versioned build folder, `USE_MDFILE_AS_MAINPAGE` = root README if present, `GENERATE_LATEX = NO`, `EXTRACT_ALL` according to the annotation state.
+
+## Step 8 — L6 scenarios and the L4 tutorial
+
+1. **Feature inventory**: what the project lets a developer do, from the features (F2), the effective interface (graph), the examples (inventory) and the headers included by the tests and examples (graph; tests are read to understand usage, never cited in the pages). An overload or variant with a distinct behavior is a distinct feature. GUI: each window, dialog or view (F23). Embedded: each peripheral driven and each interrupt (F27). Service: each endpoint or message type.
+2. **Catalog**: one scenario per atomic task (granularity rules in `scenario-brief.md`), grouped into families of usage; global numbering NN so that sheets can refer to each other. Each entry: NN, sheet type (scenario, GUI journey, interrupt; a hardware operation is a scenario), title, entry function with `file:line`, feature variant, example to anchor it, features covered. Every feature is reachable from at least one scenario, directly or as a step of a broader one.
+3. **Subagents**: all in a single message, `Agent` tool, `subagent_type: "general-purpose"`, `model: "sonnet"`; up to ~15 scenarios per subagent, a family kept whole when it fits; the tutorial is a separate job. Prompt reduced to:
+
+   > Read `${CLAUDE_SKILL_DIR}/reference/scenario-brief.md` and apply it. Job: scenarios | tutorial. Language: <…>. Scenarios: <NN — sheet type — title — entry `file:line` — feature variant — example — features> | Example: <path>, exposed languages: <…>. Context: `<work>/graph.md`, `<work>/batch-<x>.md`, catalog `<work>/docs-plan.md`, L1: <path>, glossary: <path or "none">. Output: <folder or file>.
+
+   Never copy the brief into the prompt. Each subagent returns a single line. Missing or truncated sheet: relaunch on the missing sheets only.
+4. **Coverage diff**: cross the inventory with the sheets written and the "not traceable" lists returned. A feature not covered is added to an existing scenario as a step when possible (relaunch), otherwise it stays in the catalog marked "not covered — to complete", as does a stack that cannot be traced (generated code, binary). Never silence on a feature.
+5. **`06-scenarios/README.md`**: the call stack legend (copy of the "Legend" block of `scenario-brief.md`); a link to the module map of L1 §3.1 (and its diagram); the catalog, one table per family: # | Scenario | Function | Key chain, with the features not covered; if examples exist, an examples ↔ scenarios table; embedded: link to the interrupt table of L1 §3.5 and list of the interrupt sheets. GUI: `06-scenarios/gui/README.md` with the screen catalog (each screen reachable has its sheet, or "not covered — to complete") and a link to L1 §7.1 for navigation.
+
+## Step 9 — Index
+
+`docs/README.md`, completed if it exists (rule 4):
+- table "You are… → Start with…": management → L1 §1, and the L2 summary table if L2 exists; newcomer → getting-started, glossary, tutorial; developer → scenarios, contributing; integrator → API reference, tutorial, L1 §3.1 and §4.3; maintainer → L2 if it exists, L1 §4, contributing;
+- annotated `docs/` tree;
+- "State of this documentation": project version, commit, branch, date, pages or sections marked "to validate", targeted rereads made after L1 was written (SKILL.md rule 3).
+
+The "to validate / seems obsolete" list of `docs-plan.md` goes into the final message.

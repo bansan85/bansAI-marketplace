@@ -1,8 +1,43 @@
-# Report 1 — architecture analysis (`architecture-analysis.md`)
+# L1 — factual architecture analysis
 
-Read by the orchestrator (Step 4) and by each R1 writer subagent. SKILL.md's rules still apply: factual (rule 1), architecture and not implementation (rule 2), evidence (rule 5). Also read `${CLAUDE_SKILL_DIR}/reference/writing-style.md` and apply it: plain English, friendly tone, no detail lists.
+Read when Step 3 starts; skipped with Steps 3–4 when L1 is reused (SKILL.md, Step 0). SKILL.md's rules apply, in particular rule 1 (factual), rule 2 (architecture, not implementation), rule 3 (sources read once) and rule 5 (evidence). Also read `${CLAUDE_SKILL_DIR}/reference/writing-style.md` and apply it: plain English, friendly tone, no detail lists. The orchestrator and each L1 writer subagent read this file.
 
 Goal: let a good developer who does not know the project understand how it is built, in one pleasant read. Length: 2,000 to 6,000 words depending on the project, diagrams not counted.
+
+## Step 3 — Cross-cutting synthesis
+
+From `inventory.md`, `graph.md`, `batch-root.md` and the `batch-*.md` files only (rule 3), write `<work>/synthesis.md`: compact (about 1,500 words), the common source of the L1 writers (and of L2), one heading per item:
+- mission and scope: as documented (root), otherwise deduced from the public API (F2) and marked "to validate";
+- module map: for each module, targets and type, level, role (F1), subsystem;
+- dependencies: build declarations compared with includes (share coming from interfaces, F3), gaps between declared visibility and usage, cycles, levels;
+- architectural style: signals from the reference below found in the graph and the batches; for each style identified, the main modules, their targets and the links between them (the content of its diagram); a style without its signals is not named: "no dominant style";
+- main flows (1 to 3): chain the batches' flow entries and exits (F24, F12) from trigger to result, step by step in plain words, with the rule or unit that helps to understand the algorithm; a missing link is "not observable";
+- runtime view: executables, processes, and how they communicate (build, F11, F12);
+- hardware view, embedded only: memory map, peripherals, interrupts, RTOS tasks, timing constraints (root, F27);
+- cross-cutting concepts: the 3 to 6 that shape the whole project, with their observable facts; the others are left for L2;
+- structuring decisions (build type, error model, concurrency model, genericity, ownership…), with their documented justification or "not documented": not in L1, used by L2;
+- recurring patterns and communication mechanisms between modules;
+- multiple responsibilities and duplications, consolidated at project level and described without labels (L2);
+- GUI: each GUI and its main windows;
+- L1 §6 is always written; L1 §3.5 (hardware) and §7 (GUI) shrink to a "not applicable" line when there is no embedded target or no GUI.
+
+## Step 4 — Writing L1
+
+Write `architecture-analysis.md` at its location (SKILL.md, "Deliverables") following the skeleton below. The orchestrator writes the title and §1 as part `0`, launches the writers (parts A to E, see "Writing in parts") in a single message, assembles the parts with `arch_facts.py assemble`, then reads the report once to remove repeated facts, fix links and check the required diagrams.
+
+## Cross-cutting concepts — facts for §4.1
+
+Keep only the concepts applicable to the project's nature. L1 §4.1 presents only the 3 to 6 main ones that are really used and explain the project as a whole (security and privacy go to §12); L2 assesses all of them from the facts below, detailed by the brief's facets; verdict criteria are in `report-2.md`.
+
+| Concept | Facts (source) |
+|---|---|
+| SRP | responsibilities of each structuring class or module (F1) |
+| OCP, LSP, ISP, YAGNI, KISS, Law of Demeter, DDD, API-first / Contract-first | F15 |
+| DIP | direction of dependencies between levels (graph); dependency on abstractions or on concrete classes (F3, F14) |
+| DRY | elements doing the same thing (F16) |
+| Security by Design | trust boundaries, isolation of sensitive processing (F21) |
+| Privacy by Design | only if personal data is identifiable: where it flows, where it is isolated (F21) |
+| IoC / dependency injection | how dependencies are obtained, composition root (F14) |
 
 ## Rules for every section
 
@@ -44,7 +79,7 @@ Goal: let a good developer who does not know the project understand how it is bu
 
 ## Skeleton
 
-The `←` marks give the data source; they do not appear in the report. A part is written from its sources only (SKILL.md rule 3).
+The `←` marks give the data source; they do not appear in the report. A part is written from its sources only (SKILL.md rule 3). The "§n" references in SKILL.md and in the other `reference/` files follow this numbering: changing it requires updating them.
 
 ```markdown
 # Architecture analysis — [project]
@@ -136,7 +171,7 @@ Commit: `[sha]` (branch, clean | modified tree) or "unversioned repository" · D
 
 ## Writing in parts (Step 4)
 
-The orchestrator has a limited output size, so R1 is written in parts, in parallel, then assembled by the script. Each part is a file `<work>/r1-<id>.md` with no title: its first line is the first heading of its sections.
+The orchestrator has a limited output size, so L1 is written in parts, in parallel, then assembled by the script. Each part is a file `<work>/r1-<id>.md` with no title: its first line is the first heading of its sections.
 
 | Part | Sections | Main sources |
 |---|---|---|

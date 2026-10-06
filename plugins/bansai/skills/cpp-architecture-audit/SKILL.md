@@ -25,60 +25,68 @@ allowed-tools:
 
 Describe, then on request assess and document, the overall design of a C++ project: modules, dependencies, responsibilities, communication between components, patterns, architectural style; on request, the documentation that lets each audience use and maintain it.
 
-Deliverables, written in the audited folder unless another location is requested:
-- **R1** `architecture-analysis.md` — factual, always produced (format and writing procedure: `${CLAUDE_SKILL_DIR}/reference/report-1.md`);
-- **R2** `architecture-prioritized-issues.md` — judgments and recommendations, only on explicit request;
-- **R3** project documentation — `docs/` tree: domain glossary, developer guides, API reference setup, usage scenarios with call stacks, index; only on explicit request. With R3, R1 and R2 are written in its layer 01: the architecture folder of the existing documentation tree, otherwise `docs/01-architecture/`;
-- `.architecture-audit/` (written `<work>`) — inventory, graph, summaries, synthesis and R1 parts, reusable for a later R2 or R3.
+## Deliverables
 
-Vocabulary: *orchestrator* = the agent running this skill; *module* = build unit (library, executable, plugin…) or, failing that, a coherent folder; several targets of the same folder and role may form one module; *subsystem* = group of related modules, used to keep diagrams readable; *batch* = modules given to the same extraction subagent; *writer* = subagent that writes a part of R1; *interface files* = headers and C++20 module interfaces (`.h .hh .hpp .hxx .inl .ipp .tpp .ixx .cppm`…); *feature* = a usage the project offers (an overload or variant with a distinct behavior is a separate feature); *scenario* = R3 sheet tracing one atomic developer task down to its call stack.
+Each deliverable is a layer of the documentation tree: Ln goes into the folder `0n-…/` when the tree is written.
+- **L1** `architecture-analysis.md` — factual analysis; always produced;
+- **L2** `architecture-prioritized-issues.md` — judgments and recommendations; only on explicit request;
+- **L3 to L6**, the *documentation* — domain glossary (L3), developer guides (L4), API reference setup (L5), usage scenarios with call stacks (L6), and the index `docs/README.md`; only on explicit request, then layer by layer (Step 0);
+- `.architecture-audit/` (written `<work>`) — inventory, graph, summaries, synthesis and L1 parts, reusable for a later L2 or documentation.
+
+Everything is written in the audited folder unless another location is requested. With the documentation, the layers go into the documentation tree (`reference/docs.md`, "Target tree"): L1 into `docs/01-architecture/` or the architecture folder of the existing tree, L2 into `02-recommendations/` of the same tree.
+
+Vocabulary: *orchestrator* = the agent running this skill; *module* = build unit (library, executable, plugin…) or, failing that, a coherent folder; several targets of the same folder and role may form one module; *subsystem* = group of related modules, used to keep diagrams readable; *batch* = modules given to the same extraction subagent; *writer* = subagent that writes a part of L1; *interface files* = headers and C++20 module interfaces (`.h .hh .hpp .hxx .inl .ipp .tpp .ixx .cppm`…); *feature* = a usage the project offers (an overload or variant with a distinct behavior is a separate feature); *scenario* = L6 sheet tracing one atomic developer task down to its call stack.
 
 ## Rules
 
-1. **R1 and R3 are factual.** Allowed: describing what exists, including that a class or module carries several distinct responsibilities, or that two elements do the same thing. Forbidden in R1, R3 and intermediate summaries: any label or judgment whose criterion is not defined in this skill ("god class", "catch-all module", "tight coupling", "central", "complex", "good separation", "clean", "debt"…), any improvement idea, any criticism of a choice. Quantify instead of qualifying: "included by 7 of 9 modules", not "widely used". What is deduced without certainty (domain meaning, intent, mission) is marked "to validate", never presented as a fact. The how-to content of R3 (build and generation commands, CI job snippet for the API reference) is not an improvement idea. Judgments, technical debt and recommendations exist only in R2, based on the criteria in `reference/report-2.md`.
-2. **Architecture, not implementation.** Read interface and build files first; open a `.cpp` only when an interface is not enough to establish a responsibility, a relationship or a flow. No line-by-line analysis, no complexity metric. Tests and examples may be read to understand the architecture and the use of the API, but are never cited outside R1 §10 (`reference/writing-style.md`). Only exceptions, for R3: checking the facts cited by existing documentation (Step 7), and tracing call stacks for scenarios and the tutorial (Step 8).
-3. **Sources are read once.** Facts are extracted once (Step 2), per module and never per topic, then serve R1, R2 and R3. No file is read in depth by two agents, except when an incomplete batch is relaunched (Step 2) and by R3 scenario subagents (Step 8). The orchestrator does not reread sources, except to settle a precise point that no summary establishes, preferably with a targeted Grep; it then says so in R1's limitations, or, once R1 is written, in the "State of this documentation" section of the R3 index. It writes R1's title and §1, R2 and the R3 pages itself; the other R1 sections are written by writer subagents, and R3's scenario sheets and tutorial by scenario subagents (Steps 4 and 8).
+1. **L1 and the documentation are factual.** Allowed: describing what exists, including that a class or module carries several distinct responsibilities, or that two elements do the same thing. Forbidden in L1, the documentation and intermediate summaries: any label or judgment whose criterion is not defined in this skill ("god class", "catch-all module", "tight coupling", "central", "complex", "good separation", "clean", "debt"…), any improvement idea, any criticism of a choice. Quantify instead of qualifying: "included by 7 of 9 modules", not "widely used". What is deduced without certainty (domain meaning, intent, mission) is marked "to validate", never presented as a fact. The how-to content of the documentation (build and generation commands, CI job snippet for the API reference) is not an improvement idea. Judgments, technical debt and recommendations exist only in L2, based on the criteria in `reference/report-2.md`.
+2. **Architecture, not implementation.** Read interface and build files first; open a `.cpp` only when an interface is not enough to establish a responsibility, a relationship or a flow. No line-by-line analysis, no complexity metric. Tests and examples may be read to understand the architecture and the use of the API, but are never cited outside L1 §10 (`reference/writing-style.md`). Only exceptions, for the documentation: checking the facts cited by existing documentation (Step 7), and tracing call stacks for scenarios and the tutorial (Step 8).
+3. **Sources are read once.** Facts are extracted once (Step 2), per module and never per topic, then serve L1, L2 and the documentation. No file is read in depth by two agents, except when an incomplete batch is relaunched (Step 2) and by the scenario and tutorial subagents (Step 8). The orchestrator does not reread sources, except to settle a precise point that no summary establishes, preferably with a targeted Grep; it then says so in L1's limitations, or, once L1 is written, in the "State of this documentation" section of the index. It writes L1's title and §1, L2 and the documentation pages itself; the other L1 sections are written by writer subagents (Step 4), and the scenario sheets and the tutorial by scenario subagents (Step 8).
 4. **Read-only.** Allowed: Read, Glob, Grep, read-only git, `scripts/arch_facts.py` (a census of files and directives, not an analyzer). Forbidden: building, tests, linters, static analyzers (clang-tidy, cppcheck, IWYU…), even if configured in the repository. Only the deliverables above are written. In existing documentation, complete without overwriting: never delete or rewrite human content, correct only verifiably false facts (line reference, signature, version, dead link); what seems obsolete is reported, not removed. Never commit.
-5. **Evidence.** Every finding and every recommendation cites real files or symbols (`file:line` when useful). What cannot be observed is stated as "not observable". No pattern, style or methodology is asserted without concrete traces. In R3, every `file:line`, signature, version or constant comes from a summary or from a file the writer opened, never from memory; this applies in particular to register addresses, interrupt priorities and memory ranges.
+5. **Evidence.** Every finding and every recommendation cites real files or symbols (`file:line` when useful). What cannot be observed is stated as "not observable". No pattern, style or methodology is asserted without concrete traces. In the documentation, every `file:line`, signature, version or constant comes from a summary or from a file the writer opened, never from memory; this applies in particular to register addresses, interrupt priorities and memory ranges.
 6. **Third-party code.** Submodules, packages and code copied from a third party are external: only the API they expose to the project is described.
-7. **Language.** All deliverables (R1, R2, R3, `<work>` files) are written in plain English: level of a 16-year-old reader, technical level of a senior developer (`reference/writing-style.md`). Exception: pages that complete an existing documentation tree written in another language keep that language. Questions and the final message are in the language of the user's request. Identifiers, paths, excerpts and diagrams stay in the project's language; the language of identifiers is never a criterion.
+7. **Language.** All deliverables (L1 to L6, `<work>` files) are written in plain English: level of a 16-year-old reader, technical level of a senior developer (`reference/writing-style.md`). Exception: pages that complete an existing documentation tree written in another language keep that language. Questions and the final message are in the language of the user's request. Identifiers, paths, excerpts and diagrams stay in the project's language; the language of identifiers is never a criterion.
 8. **Writing style.** Every deliverable follows `reference/writing-style.md`: friendly and direct, reader who does not know the project, architecture and not implementation (no lists of headers, `.cpp` files or methods), a fact stated once in the section that owns it. Every writer subagent is told to read it.
 
 ## Workflow
 
-0. Scoping: arguments, inventory, reuse, build, nature, partition, questions, root artifacts.
-1. Mechanical facts (script).
-2. Factual extraction per batch (parallel subagents).
-3. Cross-cutting synthesis (`synthesis.md`).
-4. Writing R1 (parts in parallel, then assembly).
-5–6. If R2 is requested: architectural direction, then R2, following `${CLAUDE_SKILL_DIR}/reference/report-2.md`.
-7–9. If R3 is requested: existing documentation and layers 02 to 04, scenarios and tutorial, index, following `${CLAUDE_SKILL_DIR}/reference/project-docs.md`.
+| Step | Content | Instructions |
+|---|---|---|
+| 0 | Scoping: arguments, inventory, reuse, build, nature, partition, questions, root artifacts | below |
+| 1 | Mechanical facts (script) | below |
+| 2 | Factual extraction per batch (parallel subagents) | below |
+| 3–4 | L1: cross-cutting synthesis (`synthesis.md`), writing in parallel parts, assembly | `reference/report-1.md` |
+| 5–6 | If L2 is requested: architectural direction, writing | `reference/report-2.md` |
+| 7–9 | If the documentation is requested: existing documentation and L3 to L5, L6 scenarios and tutorial, index | `reference/docs.md` |
+| — | Final message | below |
 
-The script runs with the Bash tool (`python`, else `python3` or `py -3`). Without Python: targeted Glob and Grep on the same elements, stated in R1's limitations.
+Each reference file is read (`${CLAUDE_SKILL_DIR}/reference/…`) when its steps start; `docs.md` as early as Step 0 when the documentation is requested.
+
+The script runs with the Bash tool (`python`, else `python3` or `py -3`). Without Python: targeted Glob and Grep on the same elements, stated in L1's limitations.
 
 ## Step 0 — Scoping (no subagent)
 
-1. **Arguments**: "$ARGUMENTS". They may contain a path to audit (default: repository root) and the scope: `factual` (R1), `full` (R1 + R2), `docs` (R1 + R3) or `all` (R1 + R2 + R3), in any language (`factuel`, `complet`, `doc`, `tout`…). Empty or not substituted: follow the user's request.
+1. **Arguments**: "$ARGUMENTS". They may contain a path to audit (default: repository root) and the scope: `factual` (L1), `full` (L1 + L2), `docs` (L1 + documentation) or `all` (L1 + L2 + documentation), in any language (`factuel`, `complet`, `doc`, `tout`…). Empty or not substituted: follow the user's request.
 2. **Inventory**: `python "${CLAUDE_SKILL_DIR}/scripts/arch_facts.py" inventory --root "<audited folder>" --out "<work>/inventory.md"`, then read it: commit and tree state, repository tree, C/C++ files and interface volume per folder, build files of any system, targets extracted from CMake, MSBuild and qmake builds, CMake options, dependency management, candidate third-party code, generated code, contracts (`.proto`, `.ui`, `.qml`…), tests, examples, documentation, CI, conventions and tooling, scripts, embedded markers.
-3. **Reuse**: `<work>` is reusable if its `meta.md` and the files it lists are present, it carries the same commit as the inventory, the tree was clean then and still is, the `batch-*.md` files carry the facets of the current brief (F1 to F27) and `meta.md` its version ("Brief: 2"), and the request does not change the scope (folder, exclusions). In that case, skip items 4, 6 and 8 and Steps 1–2; if R1, at its location for the requested scope, carries the same commit too, reuse it and skip Steps 3–4. Otherwise, the extraction is redone and replaces the previous one.
+3. **Reuse**: `<work>` is reusable if its `meta.md` and the files it lists are present, it carries the same commit as the inventory, the tree was clean then and still is, the `batch-*.md` files carry the facets of the current brief (F1 to F27) and `meta.md` its version ("Brief: 2"), and the request does not change the scope (folder, exclusions). In that case, skip items 4, 6 and 8 and Steps 1–2; if L1, at its location for the requested scope, carries the same commit too, reuse it and skip Steps 3–4. Otherwise, the extraction is redone and replaces the previous one.
 4. **Build**: the "Build targets" section of the inventory gives the targets, their type and their declared dependencies, with their visibility when the build system distinguishes it. These declarations are the reference for module boundaries. Read the root build files; open the others only when the extraction is missing (another build system) or incomplete (names in variables, targets created by functions or macros), and only to delimit modules: their details belong to the batches (F4).
 5. **Project nature and language**, justified by findings with their paths:
    - nature: library, service, GUI application, command-line tool, plugin, embedded or firmware, driver or hardware acquisition, real-time, or a combination (target types, `main()`, server or sockets, GUI framework, hardware target);
    - embedded signals: linker script, startup code, `SystemInit`, register or CMSIS headers, RTOS configuration (FreeRTOS, Zephyr, CMSIS-RTOS…), cross toolchain (`arm-none-eabi`…), interrupt handlers (`*_Handler`, `*_IRQHandler`), widespread `volatile` or memory-mapped access, no host OS;
    - language: C, C++ or both (extensions, `LANGUAGES` in CMake, `class` / `namespace` / `template` versus `struct` and free functions), and bindings to other languages.
 6. **Partition**:
-   - module = build unit, with all its files wherever they are (`include/…` as well as `src/…`); targets of the same folder and role that belong together may form one module. A target that holds most of the project, or more than ~250 KB of interfaces, is split, if it has subfolders, into logical modules per subfolder (`app/net`, `app/ui`…); R1 states that these boundaries are folders, not targets;
+   - module = build unit, with all its files wherever they are (`include/…` as well as `src/…`); targets of the same folder and role that belong together may form one module. A target that holds most of the project, or more than ~250 KB of interfaces, is split, if it has subfolders, into logical modules per subfolder (`app/net`, `app/ui`…); L1 states that these boundaries are folders, not targets;
    - write `<work>/partition.txt`, one line per module: `name: path, path`. Test folders form the `tests` module, which the graph handles separately; example folders form the `examples` module. Third-party code is left out;
    - tests are assigned to no batch: their coverage stays at macro level (inventory, build, graph); the batch subagents may read the tests that include their modules' headers (graph) to understand usage;
    - batches, from the interface volume in the inventory: up to ~80 KB in total, no subagent; beyond that, group related modules into batches of ~80 to 250 KB, usually no more than ~15; a larger module is a batch on its own.
 7. **Questions** — a single `AskUserQuestion` call (at most 4 questions, 2 to 4 options each; as text if the tool is missing):
-   - scope, if not already given: "Do you want only the factual analysis of the existing architecture, also the identification of improvement points and recommendations, also the project documentation, or everything?" — options "Factual analysis (report 1)", "Analysis and recommendations (reports 1 and 2)", "Analysis and project documentation (report 1 and docs)", "Everything (reports 1, 2 and docs)";
-   - a report to be written whose name already exists: "Replace", "Write alongside with the suffix -YYYY-MM-DD" (R3 pages are never replaced: rule 4);
+   - scope, if not already given: "Do you want only the factual analysis of the existing architecture, also the identification of improvement points and recommendations, also the project documentation, or everything?" — options "Factual analysis (L1)", "Analysis and recommendations (L1, L2)", "Analysis and project documentation (L1, L3 to L6)", "Everything (L1 to L6)";
+   - a report to be written whose name already exists: "Replace", "Write alongside with the suffix -YYYY-MM-DD" (documentation pages are never replaced: rule 4);
    - more than 8 batches or more than ~1,000 C/C++ files: present the batches (modules, volume) — options "Approve the partition (recommended)", "Production code only" (no examples, tools or benchmarks);
-   - R3 layers, if R3 is requested: read `${CLAUDE_SKILL_DIR}/reference/project-docs.md` and ask its layers question. If R3 is chosen in this call, read it and ask that question in a second call right after.
+   - documentation layers, if the documentation is requested: read `${CLAUDE_SKILL_DIR}/reference/docs.md` and ask its layers question. If the documentation is chosen in this call, read it and ask that question in a second call right after.
 
-   R2 and R3 are never produced without an explicit answer.
-8. **Root artifacts** (root build, dependency manifests, README, docs, ADRs, CI): read by the orchestrator, which records its findings in `<work>/batch-root.md`, with evidence: root build; project version (`project(VERSION)`, manifest, latest tag); project nature; external dependencies with their pinned version (manifest, override, baseline, submodule commit) or "not pinned"; mission and scope (what the project does and does not do) as documented; design decisions and their justification as documented; documentation; CI; inconsistencies observed between README, build options, scripts and CI (documented option missing from the build, CI job on a missing branch or target); for an embedded project, the memory regions of the linker script and the RTOS configuration; if R3 is requested, the "Guides" facts listed in `reference/project-docs.md`. A dedicated batch if they are large.
+   L2 and the documentation are never produced without an explicit answer.
+8. **Root artifacts** (root build, dependency manifests, README, docs, ADRs, CI): read by the orchestrator, which records its findings in `<work>/batch-root.md`, with evidence: root build; project version (`project(VERSION)`, manifest, latest tag); project nature; external dependencies with their pinned version (manifest, override, baseline, submodule commit) or "not pinned"; mission and scope (what the project does and does not do) as documented; design decisions and their justification as documented; documentation; CI; inconsistencies observed between README, build options, scripts and CI (documented option missing from the build, CI job on a missing branch or target); for an embedded project, the memory regions of the linker script and the RTOS configuration; if the documentation is requested, the "Guides" facts listed in `reference/docs.md`. A dedicated batch if they are large.
 
 ## Step 1 — Mechanical facts (no subagent)
 
@@ -102,36 +110,15 @@ Never copy the brief into the prompt. Each subagent writes its summary and retur
 
 Write `<work>/meta.md`: the inventory's "Git" line, date, audited folder, exclusions, batches and their modules, facets extracted (F1 to F27), "Brief: 2".
 
-## Step 3 — Cross-cutting synthesis
-
-From `inventory.md`, `graph.md`, `batch-root.md` and the `batch-*.md` files only (rule 3), write `<work>/synthesis.md`: compact (about 1,500 words), the common source of the R1 writers (and of R2), one heading per item:
-- mission and scope: as documented (root), otherwise deduced from the public API (F2) and marked "to validate";
-- module map: for each module, targets and type, level, role (F1), subsystem;
-- dependencies: build declarations compared with includes (share coming from interfaces, F3), gaps between declared visibility and usage, cycles, levels;
-- architectural style: signals from the reference below found in the graph and the batches; for each style identified, the main modules, their targets and the links between them (the content of its diagram); a style without its signals is not named: "no dominant style";
-- main flows (1 to 3): chain the batches' flow entries and exits (F24, F12) from trigger to result, step by step in plain words, with the rule or unit that helps to understand the algorithm; a missing link is "not observable";
-- runtime view: executables, processes, and how they communicate (build, F11, F12);
-- hardware view, embedded only: memory map, peripherals, interrupts, RTOS tasks, timing constraints (root, F27);
-- cross-cutting concepts: the 3 to 6 that shape the whole project, with their observable facts; the others are left for R2;
-- structuring decisions (build type, error model, concurrency model, genericity, ownership…), with their documented justification or "not documented": not in R1, used by R2;
-- recurring patterns and communication mechanisms between modules;
-- multiple responsibilities and duplications, consolidated at project level and described without labels (R2);
-- GUI: each GUI and its main windows;
-- R1 §6 is always written; R1 §3.5 (hardware) and §7 (GUI) shrink to a "not applicable" line when there is no embedded target or no GUI.
-
-## Step 4 — Writing R1
-
-Follow `${CLAUDE_SKILL_DIR}/reference/report-1.md` (skeleton, one owner per fact, required diagrams, parts, prompt of the writers, assembly). Summary: the orchestrator writes the title and §1 as part `0`, launches the writers (parts A to E) in a single message, assembles the parts with `arch_facts.py assemble`, then reads the report once to remove repeated facts, fix links and check the required diagrams. The report goes to `architecture-analysis.md` (to layer 01 of the documentation tree if R3 is requested).
-
-If R2 is requested: read `${CLAUDE_SKILL_DIR}/reference/report-2.md` and apply Steps 5 and 6. If R3 is requested: read `${CLAUDE_SKILL_DIR}/reference/project-docs.md` and apply Steps 7 to 9. Otherwise: final message.
+Then Steps 3 to 9 (Workflow).
 
 ## Final message
 
-In the chat, only: paths of the written files; project nature and identified style (one line each); if R2: number of issues per priority and titles of the 🔴 ones; if R3: documentation tree written (layers, pages created and completed), corrections made to existing pages, number of scenarios and of features marked "not covered", then the full "to validate / seems obsolete" list (the documentation says X, the code says Y), for human decision; extraction reused or redone; `.architecture-audit/` reusable for a later R2 or R3 on the same commit, otherwise to delete or to ignore in git. Never the content of the reports or pages.
+In the chat, only: paths of the written files; project nature and identified style (one line each); if L2: number of issues per priority and titles of the 🔴 ones; if the documentation: tree written (layers, pages created and completed), corrections made to existing pages, number of scenarios and of features marked "not covered", then the full "to validate / seems obsolete" list (the documentation says X, the code says Y), for human decision; extraction reused or redone; `.architecture-audit/` reusable for a later L2 or documentation on the same commit, otherwise to delete or to ignore in git. Never the content of the reports or pages.
 
 ## Reference — architectural styles
 
-To name the observed style (R1 §3.2) and choose alternatives (R2). A style is named only if its signals are observed; "no dominant style" is a valid result: never force a name. The last three are named or proposed only when their signal is present.
+To name the observed style (L1 §3.2) and choose alternatives (L2, Step 5). A style is named only if its signals are observed; "no dominant style" is a valid result: never force a name. The last three are named or proposed only when their signal is present.
 
 | Style | Observable signals |
 |---|---|
@@ -152,23 +139,9 @@ To name the observed style (R1 §3.2) and choose alternatives (R2). A style is n
 | Serverless / FaaS | cloud deployment configuration present |
 | Space-based | documented need for extreme scalability |
 
-## Reference — cross-cutting concepts
-
-Keep only the concepts applicable to the project's nature. R1 §4.1 presents only the 3 to 6 main ones that are really used and explain the project as a whole (security and privacy go to §12); R2 assesses all of them from the facts below, detailed by the brief's facets; verdict criteria are in `reference/report-2.md`.
-
-| Concept | Facts (source) |
-|---|---|
-| SRP | responsibilities of each structuring class or module (F1) |
-| OCP, LSP, ISP, YAGNI, KISS, Law of Demeter, DDD, API-first / Contract-first | F15 |
-| DIP | direction of dependencies between levels (graph); dependency on abstractions or on concrete classes (F3, F14) |
-| DRY | elements doing the same thing (F16) |
-| Security by Design | trust boundaries, isolation of sensitive processing (F21) |
-| Privacy by Design | only if personal data is identifiable: where it flows, where it is isolated (F21) |
-| IoC / dependency injection | how dependencies are obtained, composition root (F14) |
-
 ## Reference — design patterns
 
-Goal: understand how the architecture is implemented. Identify patterns from the structure (headers, hierarchies, compositions, factories, registrations, names), without analyzing implementations line by line. Describe only the patterns actually present, where and how, in a written paragraph; Pimpl (R1 §5.1) and dependency injection (R1 §4.1) are left to their sections.
+To describe how the architecture is implemented (L1 §8) and assess the patterns (L2). Identify patterns from the structure (headers, hierarchies, compositions, factories, registrations, names), without analyzing implementations line by line. Describe only the patterns actually present, where and how, in a written paragraph; Pimpl (L1 §5.1) and dependency injection (L1 §4.1) are left to their sections.
 
 - Creational: Singleton, Factory Method, Abstract Factory, Builder, Prototype, Object Pool
 - Structural: Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy, Pimpl
@@ -179,9 +152,9 @@ Goal: understand how the architecture is implemented. Identify patterns from the
 - GUI: MVC, MVP, MVVM, Presentation Model, Qt Model/View
 - Embedded and real-time: HAL, BSP, ring buffer, double buffering, state machine (transition table or hierarchical), deferred interrupt processing
 
-## Diagrams
+## Reference — diagrams
 
-Mermaid by default (rendered natively on GitLab and GitHub); PlantUML only on request. R1's required diagrams are listed in `reference/report-1.md`. Elsewhere (R2, R3), and for R1's optional ones, a diagram is used only if it resolves an ambiguity the text handles poorly:
+For every deliverable. Mermaid by default (rendered natively on GitLab and GitHub); PlantUML only on request. L1's required diagrams are listed in `reference/report-1.md`. Elsewhere, and for L1's optional ones, a diagram is used only if it resolves an ambiguity the text handles poorly:
 - interconnected modules → component flowchart;
 - class hierarchy central to a pattern → classDiagram;
 - temporal flow between modules or actors → sequenceDiagram;

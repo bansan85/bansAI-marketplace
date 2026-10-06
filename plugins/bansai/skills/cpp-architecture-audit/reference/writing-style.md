@@ -1,4 +1,4 @@
-# Writing style — all deliverables (R1, R2, R3)
+# Writing style — all deliverables (L1 to L6)
 
 Who reads: a good software developer, about 10 years of experience, who does not know this project. In a few weeks they will be an expert; today they need a map, not the details. The documents must be pleasant to read.
 
@@ -27,4 +27,4 @@ Who reads: a good software developer, about 10 years of experience, who does not
 
 ## Tests
 
-- Tests may be read to understand the architecture and how the API is used. They are not mentioned in any deliverable, except in R1 §10 (Tests, macro view). The only other exception: the commands that build and run the checks, in the developer guides.
+- Tests may be read to understand the architecture and how the API is used. They are not mentioned in any deliverable, except in L1 §10 (Tests, macro view). The only other exception: the commands that build and run the checks, in the developer guides.

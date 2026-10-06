@@ -1,4 +1,4 @@
-# Scenario brief — R3 usage scenarios and tutorial
+# Scenario brief — L6 usage scenarios and L4 tutorial
 
 You write documentation sheets that let a developer understand the system through concrete usage, not through an API reference. The unit is the developer's task, not the function. Write in the language given in the prompt (plain English by default). Read and apply `${CLAUDE_SKILL_DIR}/reference/writing-style.md`: a reader who does not know the project, friendly tone, no tests mentioned in the sheets. Identifiers, paths and excerpts stay in the project's language.
 
@@ -6,7 +6,7 @@ You write documentation sheets that let a developer understand the system throug
 
 - **Traced, never invented**: every call stack is traced in the real code: open the functions, note the real `file:line`. An invented stack destroys the value of this documentation. Embedded: register addresses, interrupt priorities and memory ranges are read in the register headers, linker script, RTOS configuration or startup code, never assumed.
 - **Reading**: the project's headers and `.cpp` files needed to trace, the example given. You may also read the tests that use the API, to understand how it is meant to be called; never cite them in a sheet. Third-party code: only its API, as a leaf of the stack.
-- **Context**: `graph.md`, the batch summaries and R1 give the architecture: do not describe it again, link to R1's sections. The catalog (`docs-plan.md`) gives the number and path of every scenario, for references between sheets.
+- **Context**: `graph.md`, the batch summaries and L1 give the architecture: do not describe it again, link to L1's sections. The catalog (`docs-plan.md`) gives the number and path of every scenario, for references between sheets.
 - **Factual**: describe what the code does. Intent or domain meaning deduced without certainty is marked "to validate". No judgment, no recommendation. Points of attention are preconditions, invariants and pitfalls observable in the code, with their source.
 - **Read-only**: write only the output given in the prompt; never modify the sources; no build, tests, linter or analyzer.
 - **Links**: relative from the sheet's location, with line anchors (`../../../src/core/engine.cpp#L42`); domain terms in bold, linked to the glossary on their first occurrence if one exists.
@@ -20,11 +20,11 @@ One atomic task = one scenario ("create an object of type A", "create an object 
 
 Conversely, a single scenario when the steps only make sense chained (end-to-end pipeline: input → intermediate steps → final artifact). Never two scenarios that differ only by a parameter value: that is a variant mentioned in one scenario. A function may appear in several scenarios; a sheet refers to its neighbors ("same stack as scenario 12, see there") instead of duplicating.
 
-## Scenario sheet `05-scenarios/<family>/NN-<name>.md`
+## Scenario sheet `06-scenarios/<family>/NN-<name>.md`
 
 ````markdown
 # Scenario NN — <Title> (`function`)
-> Layer 5 — <purpose in 1 or 2 sentences: the task, from the developer's point of view, and when to use it>. See [file.cpp:LINE](../../../src/.../file.cpp#LLINE).
+> Layer 6 — <purpose in 1 or 2 sentences: the task, from the developer's point of view, and when to use it>. See [file.cpp:LINE](../../../src/.../file.cpp#LLINE).
 
 ## Call
 <minimal commented excerpt, one block per exposed language (C++, then each binding); taken from the example when possible>
@@ -50,14 +50,14 @@ function                          [file.cpp:LINE]
 ```
 
 ## Points of attention
-- <pitfalls, preconditions, invariants, links to the glossary and R1 — what fits neither in the explanation nor in the stack>
+- <pitfalls, preconditions, invariants, links to the glossary and L1 — what fits neither in the explanation nor in the stack>
 ````
 
 A stack without the "What happens" section is useless: a tree says *what* is called, not *why*.
 
 ## Call stacks
 
-Legend (copied into `05-scenarios/README.md`):
+Legend (copied into `06-scenarios/README.md`):
 
 ```
 callingFunction                [file.cpp]
@@ -78,7 +78,7 @@ Go down to the bottom, do not stop at the first helper:
 
 Criterion: a developer can follow the execution without reopening the code. Stay readable: a repeated sub-chain is replaced by a reference ("same as scenario N").
 
-## GUI variant — journey sheet `05-scenarios/gui/NN-<name>.md`
+## GUI variant — journey sheet `06-scenarios/gui/NN-<name>.md`
 
 A GUI is documented through its screens, interactions and state, not its API. Same principles (task → scenario, fine grain, coverage), transposed:
 
@@ -92,7 +92,7 @@ A GUI is documented through its screens, interactions and state, not its API. Sa
 
 ````markdown
 # Journey NN — <Title>
-> Layer 5 — <what the user accomplishes here, in 1 or 2 sentences>. Window: [MainWindow.cpp:LINE](../../../src/.../MainWindow.cpp#LLINE).
+> Layer 6 — <what the user accomplishes here, in 1 or 2 sentences>. Window: [MainWindow.cpp:LINE](../../../src/.../MainWindow.cpp#LLINE).
 
 ## Overview
 <description of the view: areas, fields, actions, read from the `.ui` / `.qml` / widget code>
@@ -129,11 +129,11 @@ Qt: the flow follows signal → slot → model → view (`connect` at `file:line
 | "What happens" | Effect on the hardware: registers written, peripheral armed, interrupt enabled, state reached |
 | Call stack | Chain down to the register access: `readSensor() → i2c_read() → write to DR/CR [periph.h:LINE] ← arms the transfer`; down to the memory-mapped access, not just the HAL helper |
 
-Hardware operations use the scenario sheet. Interrupt sheet `05-scenarios/<family>/NN-isr-<name>.md`:
+Hardware operations use the scenario sheet. Interrupt sheet `06-scenarios/<family>/NN-isr-<name>.md`:
 
 ````markdown
 # Interrupt NN — <Title> (`Handler`)
-> Layer 5 — <when this interrupt fires and what it does>. See [it.c:LINE](../../../src/it.c#LLINE).
+> Layer 6 — <when this interrupt fires and what it does>. See [it.c:LINE](../../../src/it.c#LLINE).
 
 ## Trigger
 <source: peripheral, event (edge, end of transfer, timeout), priority, whether it preempts or is preempted>
@@ -150,9 +150,9 @@ Handler                           [it.c:LINE]
 ```
 
 ## Points of attention
-- <reentrancy, shared data and its protection, handler duration, acknowledgment order, `volatile` data; links to R1 §3.5>
+- <reentrancy, shared data and its protection, handler duration, acknowledgment order, `volatile` data; links to L1 §3.5>
 ````
 
-## Tutorial job — `03-guides/usage-tutorial.md`
+## Tutorial job — `04-guides/usage-tutorial.md`
 
-Rebuild the given example step by step, one block per exposed language (C++ and each binding); link to the R1 §3.3 flow it illustrates, if any. Never invent an API: every call comes from the example or from a header you opened. Per step: excerpt of the example (at most ~15 lines) with its link, what it does and why, link to the scenario sheet(s) concerned. First line after the title: `> Layer 3 — usage tutorial.` End with "Further reading" (getting-started, scenarios, glossary).
+Rebuild the given example step by step, one block per exposed language (C++ and each binding); link to the L1 §3.3 flow it illustrates, if any. Never invent an API: every call comes from the example or from a header you opened. Per step: excerpt of the example (at most ~15 lines) with its link, what it does and why, link to the scenario sheet(s) concerned. First line after the title: `> Layer 4 — usage tutorial.` End with "Further reading" (getting-started, scenarios, glossary).
