@@ -143,9 +143,15 @@ since a trailer lives in the body.
   50.
 - **Trailer block**: this only concerns trailers you'd add on your own
   initiative, chiefly this session's required attribution footer —
-  add it only if that same trailer already appears in the history just
-  checked (e.g. a prior `Co-Authored-By:` line); if the repository has
-  never used it, leave it out. Exceptions: `BREAKING CHANGE:` is
+  add it only if the history just checked already contains a trailer
+  with the same key. Compare the key only, case-insensitively
+  (`Co-Authored-By:` and `Co-authored-by:` are the same key), and
+  ignore the identity after it: a `Co-authored-by: Copilot <…>` or a
+  human co-author counts as the key being in use, so the session's own
+  `Co-Authored-By:` line is then added. Scan the whole body of every
+  commit, including the indented or bulleted sub-messages of squashed
+  commits, not just the last lines. If no commit has ever used the key,
+  leave it out. Exceptions: `BREAKING CHANGE:` is
   always mandatory for a backward-incompatible change regardless of
   history, and a trailer the user or the diff explicitly supplies
   (e.g. `Closes #123`) always goes in. Full formatting rules in
@@ -442,7 +448,8 @@ ever sees it:
 
 Never use an unquoted `<<EOF`.
 
-Append the attribution trailer only if step 3 found it already in the
+Append the attribution trailer only if step 3 found its key (e.g.
+`Co-Authored-By:`, whoever the co-author is) already in the
 repository's history (see the Trailer block bullet in step 3).
 
 ## 6. Report back
