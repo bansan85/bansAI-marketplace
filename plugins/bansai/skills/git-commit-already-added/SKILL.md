@@ -5,473 +5,210 @@ description: Draft a commit message from content that is already staged (git add
 
 # Git commit from already-staged changes
 
-Write a commit message using **only what is already in the git index**
-(`git add` has already been run). Never stage additional files, never
-unstage anything, never use unstaged working-tree changes as input.
-
-Exceptions:
-- when amending, the content to summarize is what the amended commit
-  will contain once the index is folded into it — see step 2;
-- step 1b auto-formats the staged changes and re-stages the formatted
-  result of those same lines — nothing else.
-
-## 1. Check the repository state
-
-Run `git status && git diff --cached --stat` in one call.
-
-- If `git status` reports an operation in progress — unmerged paths,
-  "You are currently rebasing/cherry-picking/reverting", "you are
-  still merging" — stop and tell the user which operation is in
-  progress. Don't draft a message or commit: git already prepared its
-  own message for these cases, and amending a commit being replayed
-  would rewrite it.
-- If the diff stat is empty and the user is not amending: tell them
-  nothing is staged and stop — don't run `git add` on their behalf.
-- If the diff stat is empty and the user *is* amending: continue, this
-  is a pure reword of the previous commit's message.
-
-## 1b. Auto-format the staged changes
-
-Skip if nothing is staged. Do not mention any of this to the user until
-step 6.
-
-**Scope**: only the lines the commit changes (`git diff --cached -U0`,
-against `HEAD`; when amending, the newly staged lines only, not the
-previous commit's). A newly added file counts as fully changed. Never
-reformat untouched lines, never touch deleted files.
-
-**Which formatter, per staged file**:
-- C / C++ sources and headers: `clang-format`, only if a `.clang-format`
-  exists at the git root.
-- `CMakeLists.txt` / `*.cmake`: `gersemi` if `.gersemirc` exists at the
-  git root; otherwise find whether and how they are formatted
-  (`cmake-format` config, CLAUDE.md, CI or pre-commit config) and
-  follow it.
-- Any other file type: find whether and how it is formatted
-  (CLAUDE.md, `.editorconfig`, `.pre-commit-config.yaml`, tool config
-  files such as `.prettierrc`, `pyproject.toml`, `rustfmt.toml`, CI
-  scripts) and apply the rules if some exist.
-
-Look first in CLAUDE.md (project root, then user level): if it states
-the formatter and command for a file type, use it without searching
-further. If it is silent, do the search above and remember to ask in
-step 7. No rule found or tool not installed → leave the file as is.
-
-**Applying it to the changed lines only**, working on the **index**
-content (`git show :<path>`), never the working tree, so unstaged edits
-cannot leak into the commit:
-1. If the tool takes line ranges (`clang-format --lines=a:b
-   --assume-filename=<path>`), pass the changed ranges. Otherwise
-   format a copy in full and keep only the formatter's hunks that
-   overlap the changed lines.
-2. Write the result back to the index: `git hash-object -w --stdin`
-   then `git update-index --cacheinfo <mode>,<sha>,<path>`.
-3. If the working-tree file was identical to the index before, also
-   write the formatted content there. Otherwise leave the working
-   tree untouched.
-
-Record which files changed and with which tool, for step 6.
-
-## 2. Read the staged change as one block
-
-Normal commit: run `git diff --cached` and read it as a single unit of
-work.
-
-Amend: an amend produces one tree, not two stacked patches — read the
-exact content the amended commit will hold, not two diffs.
-
-- Refuse to amend a merge commit: `git rev-parse --verify -q HEAD^2`.
-  If it succeeds, HEAD is a merge commit — tell the user and stop.
-- Find the parent to diff against: `git rev-parse --verify -q HEAD^`.
-  - Succeeds → `git diff --cached -M HEAD^`.
-  - Fails → HEAD is the root commit (`HEAD^`/`HEAD~1` would abort with
-    `fatal: ambiguous argument`) — diff against the empty tree:
-    `git diff --cached -M 4b825dc642cb6eb9a060e54bf8d69288fbee4904`.
-- Read the previous message with `git log -1 --format=%B`, to keep
-  what still applies and deliberately replace what does not.
-
-A **concept** is the minimal, coherent set of changes that answers one
-single change intention — what an atomic commit would contain on its
-own. Two different bug fixes landing in the same commit are two
-concepts. A config file edit and an unrelated one-line code change are
-two concepts. Refactoring a function and adapting all its callers is
-one concept. Group by change intention, never by file or by sentence:
-changes that serve the same intention form one concept even when they
-span several files.
-
-Only split into several concepts if they are genuinely unrelated. With
-several concepts, give each its own paragraph and name all of them in
-the title if it still fits in at most 50 characters; otherwise pick
-the umbrella framing that covers them.
-
-## 3. Infer the repository's commit style
-
-First check CLAUDE.md (project root, then user level) for the commit
-style: type prefix (and scopes), language, casing and punctuation,
-title length, trailer block. Every item it states is authoritative —
-use it and don't look for it in the history. If all five are stated,
-skip the `git log` call below entirely. Items it doesn't state are
-inferred from the history as follows, and noted for step 7.
-
-Run `git rev-parse --verify -q HEAD && git log -n 10 --no-merges --format="%B---END---"`
-in one call. Non-zero exit (not empty output — `git log` on an
-empty repo aborts with `fatal: your current branch ... does not have
-any commits yet`, exit 128) means this is the initial commit: skip
-inference, use Conventional Commits, write in the user's language.
-
-Otherwise deduce from the log output — it prints each commit's full
-body, not just the subject (merge commits are excluded: their message
-is generated by git, not the user, so it carries no style signal):
-read just the first line of each block for the title-only checks below
-(prefix, casing, length); read the whole block for the trailer check,
-since a trailer lives in the body.
-
-- **Type prefix**: only use a Conventional Commits type (`fix:`,
-  `feat:`, `chore:`, …) in the title if recent history already uses
-  it consistently — don't introduce it otherwise. When in use, apply
-  it in full: carry a `(scope)` if the history uses scopes, and mark a
-  backward-incompatible change with `!` after the type/scope plus a
-  `BREAKING CHANGE:` footer — see "Conventional Commits" in step 4.
-- **Language**: write in the same language as the commit history. No
-  history (first commit) or unclear signal → use the language the
-  user is speaking in the current conversation, not this skill file.
-- **Casing and punctuation**: match whether titles start with a
-  capital or lowercase letter, and whether they end with a period.
-- **Title length**: at most 50 characters. Keep the title as short as
-  it can be while still naming the change, even if past titles ran
-  longer. Type prefix, scope and trailing period all count towards the
-  50.
-- **Trailer block**: this only concerns trailers you'd add on your own
-  initiative, chiefly this session's required attribution footer —
-  add it only if the history just checked already contains a trailer
-  with the same key. Compare the key only, case-insensitively
-  (`Co-Authored-By:` and `Co-authored-by:` are the same key), and
-  ignore the identity after it: a `Co-authored-by: Copilot <…>` or a
-  human co-author counts as the key being in use, so the session's own
-  `Co-Authored-By:` line is then added. Scan the whole body of every
-  commit, including the indented or bulleted sub-messages of squashed
-  commits, not just the last lines. If no commit has ever used the key,
-  leave it out. Exceptions: `BREAKING CHANGE:` is
-  always mandatory for a backward-incompatible change regardless of
-  history, and a trailer the user or the diff explicitly supplies
-  (e.g. `Closes #123`) always goes in. Full formatting rules in
-  "Trailer block (footer)" in step 4.
-
-## 4. Draft the message
-
-Produce the title and body — message text only: no preamble, no code
-fences, no explanation — by following every rule of this step. Do not
-draft from memory, from generic commit-message conventions, or from
-what the repository's history alone suggests: these rules (what counts
-as one concept, when a paragraph gets numbered, describing effect
-instead of the diff) are stricter and more specific than generic style
-knowledge, and are the only authority for content and structure.
-
-The style detected in step 3 (type prefix, scope, language, casing,
-punctuation, title length) is applied on top of these rules and wins
-on those points only; it never supersedes them on content or
-structure.
-
-### Structure
-
-- **Reading level**: understandable by a smart 16-year-old, but keep
-  the technical precision of a software engineer with 10 years of
-  experience. The reader is a competent engineer who does **not**
-  know this codebase's architecture — don't lean on internal jargon
-  without making it clear from context.
-- **50/72 rule**: title ≤ 50 characters (hard ceiling, prefix, scope
-  and trailing period included — aim well below it), blank line, body
-  lines wrapped at ≤ 72 characters, blank line between paragraphs.
-- **Action-verb subject**: the title opens with a verb naming what the
-  commit does, in the form the repository's history uses. In English
-  that is the imperative ("Add", "Fix", "Remove", not "Added",
-  "Fixes", "Adding"); in French it is normally the infinitive
-  ("Ajouter", "Corriger", "Supprimer"). Match the history.
-- **RFC 2119**: the title must comply with RFC 2119 — if it uses a
-  normative keyword (MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT,
-  SHOULD, SHOULD NOT, RECOMMENDED, MAY, OPTIONAL), that keyword
-  carries exactly the meaning RFC 2119 gives it, never a casual
-  synonym.
-- **What it may draw on**: the concept paragraphs may draw on the
-  staged diff and nothing else. Only the context paragraph may also
-  draw on the current conversation. When reading other files of the
-  repository is unavoidable, read them from the index
-  (`git show :<path>`) so unstaged edits cannot leak into the message.
-  Reference anything outside the repository only if it is truly
-  indispensable to understand the diff.
-- **Context paragraph (optional)**: if useful, one leading paragraph
-  stating the context — the problem, motivation, or reason the change
-  was needed. Include it only if it adds information neither the title
-  nor the concept paragraph(s) already convey; if it would just
-  restate them, drop it and start directly with the concept
-  paragraph(s).
-  It must be 100% factual: every claim must be something the user
-  literally said in the conversation or something the diff shows. Never
-  infer, assume or fill in a plausible reason (constraints, workflow,
-  timing, causes) the user did not state. Cut the unfounded claim, not
-  the paragraph: keep whatever factual content remains if it adds
-  something the title and the concept paragraph(s) don't already say.
-- **Concept paragraph(s)**: one paragraph per concept stating what the
-  commit actually changes — the solution itself, not just the problem
-  it addresses. Describe the finality, not the diff: state what goes
-  wrong and why it matters, or what changed in effect — to the
-  software's behaviour, or to what a caller or user can now expect —
-  not how the code does it. The reader can already see the code; the
-  body's job is to say what the code cannot say about itself. Stay
-  factual and tied to what the diff actually does.
-- **Stay on the code**: never mention how a bug was found (code
-  review, fuzzing, a specific crash report, ...) or anything else
-  about the process behind the commit, and never list alternatives
-  that were rejected.
-- **Names**: do not name functions, member variables or classes unless
-  understanding the commit is impossible without that name. Prefer a
-  plain description of the role or behaviour instead. Never name a
-  private member variable: describe its role.
-- **Paragraph length**: at most 5 lines per paragraph, and always the
-  shortest wording that carries the information — 5 is the ceiling,
-  not the budget to spend. If a paragraph runs past 5 lines, check
-  whether it is really covering several concepts; if it is, split it
-  into one paragraph per concept. Length alone is not proof of several
-  concepts.
-- **Paragraph count**: the optional context paragraph, plus one concept
-  paragraph per concept — except bug fixes, whose concept part is the
-  bug/fix pair described below.
-- **Numbering**: only when there is more than one concept paragraph,
-  prefix each concept paragraph with `(X/N)` at the very start of the
-  paragraph (e.g. `(1/2) Add …`) so the reader can see how many
-  independent concepts the commit bundles. The context paragraph, when
-  present, is never numbered, and a single concept paragraph is never
-  numbered either.
-- **No filler body**: if the title already says everything needed,
-  don't add a body paragraph just to have one.
-- **Bug fixes**: first paragraph describes the bug, second paragraph
-  describes the fix. Skip the second paragraph if it would just
-  restate the first one with the faulty condition inverted. This
-  applies at the clause level too: a fix paragraph must describe the
-  mechanism of the solution, not tack on a "so X no longer happens" /
-  "instead of Y" clause whose only content is the bug paragraph's
-  condition negated. If a clause states genuinely new information (a
-  concrete new behavior, not just the absence of the old one), keep
-  it; if removing it would lose nothing because the bug paragraph
-  already implies it by negation, cut it. When the defect has a
-  standard vulnerability-class name, use it (out-of-bounds read/write,
-  use-after-free, double free, integer overflow, type confusion,
-  divide by zero, race condition, etc.) — but only when it accurately
-  describes the flaw. Use it in the title as well as in the bug
-  paragraph, e.g. `fix: close use-after-free in NO_CACHE read buffer`.
-
-### Conventional Commits
-
-Only when step 3 established that the repository uses the convention:
-
-- `<type>(<scope>)!: <subject>` — include the `(scope)` when the
-  history uses scopes, and pick the scope from the values the history
-  already uses rather than inventing one.
-- Add `!` after the type/scope when the change is backward-incompatible,
-  **and** end the message with a `BREAKING CHANGE: <what breaks and
-  what callers must do>` footer. The `!` alone is not enough.
-- Reproduce the issue-trailer form the history uses (`Closes #123`,
-  `Refs: ABC-123`, `Fixes: …`) when the user or the diff supplies the
-  reference. Never invent an issue number and never guess one from the
-  branch name.
-
-### Trailer block (footer)
-
-Any trailer — `BREAKING CHANGE:`, `Closes #123`, `Refs:`,
-`Signed-off-by:`, `Co-Authored-By:`, `Change-Id:`, `Reviewed-by:`,
-`Reviewed-on:`, `Tested-by:`, and the session's attribution footer —
-goes in a single block at the very end of the message, after one blank
-line, one trailer per entry.
-
-Whether to add a trailer on your own initiative (chiefly the session's
-attribution footer) is decided in step 3. `BREAKING CHANGE:` is the
-only exception: always mandatory for a backward-incompatible change,
-regardless of history.
-
-**A trailer wraps only when its value is free prose.** In practice that
-means `BREAKING CHANGE:` and nothing else: its text varies in length, so
-it obeys the ≤ 72-character limit like the rest of the message — wrap it
-and indent each continuation line by two spaces, so the footer still
-reads as a single entry.
-
-Every other trailer holds one atomic value — an identity, a URL, a
-hash, an issue id — with no natural break point, so it stays on one
-line however long it gets. Splitting `Reviewed-on:` or `Co-Authored-By:`
-across two lines destroys the grep or the parser that reads it.
-
-Lines that git or a hook wrote itself are reproduced byte for byte:
-`Change-Id:`, Gerrit's `Reviewed-on:` / `Tested-by:` / `Reviewed-by:`,
-and `(cherry picked from commit 765ae13)`. Never re-flow, re-indent,
-re-order or drop them — when amending, carry the previous message's
-trailer block over unchanged.
-
-The trailer block is not a paragraph: it is never numbered, never
-counted in `N`, and not subject to the paragraph-length rule.
-
-### Examples
-
-#### Good — two unrelated concepts, numbered
-
-```
-feat(auth): refresh tokens and bump CI image
-
-(1/2) Sessions no longer end abruptly after an hour: the client
-now refreshes its token in the background before expiry, and
-falls back to a normal re-login if the refresh is rejected.
-
-(2/2) The CI image moves to Node 22, which the refresh timer
-needs for its use of AbortSignal.timeout.
-```
-
-#### Good — bug fix, bug paragraph then fix paragraph
-
-```
-Fix cache never filled by const getters
-
-The accessors are declared const and were meant to memoize their
-result on first call, but the cache member is not mutable, so a
-const member function cannot assign to it. Every accessor ended
-up recomputing its value on each call.
-
-Declare the cache member mutable, so the const accessors can
-fill it on first use. Logical constness is preserved: the value
-an accessor returns is unchanged, only the first call is slow.
-```
-
-#### Good — breaking change under Conventional Commits
-
-```
-fix(api)!: correct retreive_config spelling
-
-The public entry point was exported misspelled as
-retreive_config. It is now retrieve_config, with the same
-signature and the same behaviour; the old name is gone rather
-than kept as an alias.
-
-BREAKING CHANGE: retreive_config() no longer exists. Call
-  retrieve_config() instead — the arguments and the return type
-  are unchanged, so migrating is a rename.
-```
-
-#### Bad — fix paragraph tacks on a negated restatement of the bug
-
-```
-fix(verify): don't crash on unreadable object
-
-The dialog runs git with throwOnErrorExit, so a single corrupted
-dangling object broke the whole feature: batch-fetching commit
-metadata aborted with no output, and previewing that object's
-content threw an unhandled exception that crashed the dialog.
-
-Fall back to querying each commit's metadata individually when
-the batched git show fails, so one unreadable commit no longer
-wipes out the metadata for the rest of the batch. Catch the same
-failure when fetching an object's content for preview, and show
-a placeholder message instead of letting the exception propagate.
-```
-
-Both clauses after the commas ("so one unreadable commit no longer
-wipes out the metadata for the rest of the batch", "instead of
-letting the exception propagate") add no information: they are the
-bug paragraph's conditions negated, not a description of the fix
-mechanism. Cut them:
-
-```
-fix(verify): don't crash on unreadable object
-
-The dialog runs git with throwOnErrorExit, so a single corrupted
-dangling object broke the whole feature: batch-fetching commit
-metadata aborted with no output, and previewing that object's
-content threw an unhandled exception that crashed the dialog.
-
-Fall back to querying each commit's metadata individually when
-the batched git show fails. Catch the same failure when fetching
-an object's content for preview, and show a placeholder message.
-```
-
-#### Bad — context paragraph invents a reason the user never gave
-
-User request: "Split FEA-037 in two. FEA-037 must contain ONLY the
-low-temperature acquisition and FEA-041 ONLY the high-temperature
-one. Update all documents."
-
-```
-Split FEA-037 into a 15 °C and a 40 °C FEA
-
-Each end of the operating temperature range needs the whole bench
-brought to its own ambient temperature, and the two runs are
-qualified on separate days.
-```
-
-The user never said the bench must be re-conditioned or that the runs
-happen on separate days: that is a plausible guess, not a fact. Cut
-those claims, then check what is left against the title: if the
-remaining stated facts add nothing to it, drop the paragraph; if they
-do (here, that FEA-037 keeps ONLY the low-temperature acquisition and
-the new FEA-041 ONLY the high-temperature one), rewrite the paragraph
-with those facts alone.
-
-### Review the draft
-
-Before moving to step 5, re-read the draft against every rule of
-Structure, Conventional Commits and Trailer block, one rule at a time,
-and fix anything that fails. In particular, recount the concepts the
-diff actually contains and check that `(X/N)` is present if and only
-if more than one concept paragraph remains.
-
-## 5. Create the commit
-
-Commit exactly the staged content — do not run `git add` first (step 1b
-already re-staged the formatted lines), and do not ask the user to approve the draft beforehand (the final message is
-shown back in step 6).
-
-When amending, first capture the current hash so it can be reported
-later: `git rev-parse --short HEAD`.
-
-Never pass the message with `-m`. Write it to a temporary UTF-8 file in
-the session scratchpad with the Write tool and pass that file to git;
-delete the file afterwards:
-
-- new commit: `git commit -F <file>`
-- amend: `git commit --amend -F <file>`
-
-This is the only form that behaves identically on Windows and Linux,
-preserves multi-line formatting exactly, and cannot mangle accented
-characters. If you pass the message through the shell instead, the
-here-document delimiter **must** be quoted, otherwise the shell
-expands `$VAR` and executes backticks found in the message before git
-ever sees it:
-
-- bash / Git Bash: `git commit -F - <<'MSG'` … then `MSG` at column 0
-- PowerShell: a single-quoted here-string piped in — `@'` … then `'@`
-  at column 0, followed by `| git commit -F -`
-
-Never use an unquoted `<<EOF`.
-
-Append the attribution trailer only if step 3 found its key (e.g.
-`Co-Authored-By:`, whoever the co-author is) already in the
-repository's history (see the Trailer block bullet in step 3).
-
-## 6. Report back
-
-Show the user the message exactly as git stored it (a `commit-msg`
-hook may have rewritten it) together with the short hash, in one call:
-`git --no-pager log -1 --format="%h%n%B"`. When amending, also report
-the pre-amend hash captured in step 5.
-
-Output only that: the full commit text (title, body and trailers, not
-just the title) and the hash, followed by one line on the auto-format
-from step 1b (files reformatted and tool used) when it changed
-anything — this is the only place it is mentioned. If the formatted
-working-tree file was left unchanged because of unstaged edits, say so
-in that line. Add no other comment, and in particular do not mention an
-omitted trailer.
-
-## 7. Offer to record missing conventions in CLAUDE.md
-
-Only if step 1b or step 3 had to search or infer something CLAUDE.md
-did not state (formatter and command per file type; type prefix,
-language, casing and punctuation, title length, trailer block): ask the
-user, in a single question listing what was found, whether to add it to
-CLAUDE.md (project root file). On yes, write it there, without staging
-it. Ask nothing if CLAUDE.md already covered everything.
+Write the message from **the git index only**. Never stage more, never
+unstage, never use unstaged changes as input. Two exceptions: an amend
+summarizes what the amended commit will hold (step 3), and step 2
+reformats staged lines.
+
+## Gates
+
+Each gate needs evidence in a tool result of this run. "I remember it"
+and "I wrote this change in this conversation" are not evidence.
+
+1. **Diff read** (step 3): every hunk was read, or is covered by the
+   large-diff rule.
+2. **Concept ledger** (step 3): the concepts are listed, N is fixed,
+   before any text is drafted.
+3. **Lint** (step 6): `scripts/check_message.py` prints `OK` on the file
+   that is committed. Never count characters or lines by eye.
+4. **Report** (step 8): the reply contains the full commit text.
+
+## 1. State
+
+Run `git status && git diff --cached --stat`.
+
+- An operation in progress (unmerged paths, rebase, cherry-pick,
+  revert, merge): stop and name it. Git prepared its own message.
+- Empty stat, no amend: say nothing is staged and stop. Never `git add`.
+- Empty stat, amend: continue; it is a pure reword.
+
+## 2. Format the staged lines
+
+Skip if nothing is staged. Say nothing of it before step 8.
+
+Scope: only the lines the commit changes (`git diff --cached -U0`;
+amend: the newly staged lines only). A new file is fully changed.
+Never reformat untouched lines or touch deleted files.
+
+Formatter per file: CLAUDE.md (project, then user level) if it names
+one; else `clang-format` for C/C++ when `.clang-format` is at the git
+root; `gersemi` for CMake when `.gersemirc` is there; else look in
+`.editorconfig`, pre-commit and tool configs, CI scripts. None found or
+tool missing: leave the file. Whatever CLAUDE.md did not state is noted
+for step 9.
+
+Work on the index content (`git show :<path>`): use the tool's line
+ranges (`clang-format --lines=a:b --assume-filename=<path>`), or format
+a copy and keep only the hunks that overlap changed lines. Write it back
+with `git hash-object -w --stdin` and `git update-index --cacheinfo`.
+Write the working tree too only if it was identical to the index.
+Record files and tool for step 8.
+
+## 3. Read the change, list the concepts
+
+Normal commit: `git diff --cached`. Amend: refuse a merge commit
+(`git rev-parse --verify -q HEAD^2` succeeds); then diff against the
+parent, `git diff --cached -M HEAD^`, or against the empty tree
+`4b825dc642cb6eb9a060e54bf8d69288fbee4904` when `HEAD^` does not
+exist. Read the old message too (`git log -1 --format=%B`): keep what
+still applies. An amend yields one tree, not two stacked patches.
+
+The reading is mandatory even when the change is fresh in the context.
+The conversation may feed only the context paragraph.
+
+Large diff (truncated output, or over about 1500 lines): read the stat,
+then `git diff --cached -- <paths>` per folder until every file is
+read. Tests, fixtures, generated, lock and binary files may be read
+through the stat and the names they add. All else: hunk by hunk.
+
+**Concept ledger.** A concept is the minimal set of changes answering
+one intention, what an atomic commit would hold. Group by intention,
+never by file. A refactoring and the adaptation of its callers is one
+concept; two unrelated fixes are two. Write one line per concept: the
+observable effect, and the files that serve it. Merge entries where one
+is only the plumbing, adaptation or test of the other. Keep apart those
+that each give a caller or user something observable, even when one
+builds on the other. Tests that go with a change are not a concept.
+
+The count N fixes the shape:
+
+- N = 1: no `(X/N)`. Body: optional context paragraph, plus ONE concept
+  paragraph (a bug fix: bug paragraph, then fix paragraph).
+- N ≥ 2: optional unnumbered context paragraph, then exactly N concept
+  paragraphs, each starting `(X/N)`.
+
+If the facts do not fit paragraphs of 5 lines after cutting what the
+code already says, the commit is too big: say so in the reply and point
+to the `git-add-commits` skill.
+
+## 4. Style
+
+Each item stated in CLAUDE.md (project, then user level) is
+authoritative. Infer the rest from the history, and note it for step 9:
+`git rev-parse --verify -q HEAD && git log -n 10 --no-merges --format="%B---END---"`.
+A non-zero exit means an initial commit: use Conventional Commits and
+the user's language. Skip the call when CLAUDE.md states all five.
+
+- **Prefix**: use a Conventional Commits type only if the history uses
+  it consistently; then use it fully (scope if the history has scopes,
+  see step 5).
+- **Language**: that of the history; else the user's, not this file's.
+- **Casing, final period**: as in the history.
+- **Title length**: at most 50 characters, prefix, scope and period
+  included; as short as the meaning allows.
+- **Attribution trailer**: add the session's own trailer (for instance
+  `Co-Authored-By:`) only if some commit of those 10 already carries the
+  same key. Compare the key alone, case-insensitively, ignoring the
+  identity; scan whole bodies, squash sub-messages included. Otherwise
+  leave it out.
+
+The history decides only these five items. Paragraph length, count and
+numbering never follow it: a long paragraph in the log is no model.
+
+## 5. Draft
+
+Read [reference/examples.md](reference/examples.md) first (skip for a
+title-only commit). Only these rules decide content and structure;
+generic commit habits do not.
+
+- **Reader**: a competent engineer who does not know this codebase.
+  Plain words as a smart 16-year-old would follow, with a senior
+  engineer's precision. No unexplained internal jargon.
+- **Title**: opens with an action verb in the history's form
+  (imperative in English, infinitive in French). A normative keyword
+  (MUST, SHOULD, MAY…) carries its RFC 2119 meaning.
+- **Sources**: concept paragraphs draw on the staged diff alone. Other
+  files only through `git show :<path>`. Nothing outside the repository
+  unless indispensable.
+- **Context paragraph**: only if it adds what neither the title nor the
+  concept paragraphs say. 100% factual: each claim is something the
+  user said or the diff shows. Never infer a reason, constraint,
+  workflow or cause. Cut the unfounded claim, not the paragraph.
+- **Concept paragraphs**: say what changed in effect, for the software
+  or for what a caller or user can now expect. The code shows how; say
+  what it cannot. For a fix: what goes wrong and why it matters.
+- **Stay on the code**: never how a bug was found (review, fuzzing,
+  crash report) or any process. Never a rejected alternative.
+- **Names**: no function, member or class names unless the commit is
+  incomprehensible without them. Never a private member: describe its
+  role.
+- **No filler**: if the title says it all, write no body.
+- **Bug fix**: bug paragraph, then fix paragraph, which describes the
+  mechanism. Drop it if it only restates the bug with the condition
+  inverted, and cut any clause that only negates the bug. Use the
+  standard defect name (out-of-bounds read, use-after-free, double free,
+  integer overflow, type confusion, divide by zero, race condition…)
+  when accurate, in the title too.
+- **Conventional Commits** (when step 4 chose it):
+  `<type>(<scope>)!: <subject>`, scope from the history's own values.
+  A backward-incompatible change takes `!` and a `BREAKING CHANGE:`
+  footer saying what breaks and what callers must do. Issue trailers
+  follow the history's form, only if the user or diff supplies the
+  reference; never invent one or take it from the branch name.
+- **Trailers**: one block at the very end after one blank line, one per
+  entry. `BREAKING CHANGE:` is always required for a breaking change.
+  It alone wraps at 72, continuation lines indented by two spaces. Every
+  other trailer stays on one line. Lines written by git or a hook
+  (`Change-Id:`, Gerrit's `Reviewed-on:`, `(cherry picked from…)`) are
+  kept byte for byte; on an amend carry the old block over unchanged.
+  The block is not a paragraph and is never numbered.
+
+## 6. Write and lint
+
+Write the draft with the Write tool to a UTF-8 file in the session
+scratchpad. Run:
+
+`python -I "${CLAUDE_SKILL_DIR}/scripts/check_message.py" <file> --concepts N`
+
+Add `--title-max <n>` when step 4 states a limit under 50. The script
+checks the title, the 72-character lines, the 5-line paragraphs, the
+paragraph count for N, the numbering and the trailer block. On `FAIL`,
+fix the file and run it again. Never change N to pass: a different N
+means going back to the ledger.
+
+The script does not read words. Then check by hand: Names, Stay on the
+code, Bug fix, RFC 2119, the facts of the context paragraph.
+
+## 7. Commit
+
+Commit exactly the index. No `git add` (step 2 already re-staged), no
+approval round (step 8 shows the result). On an amend, first note
+`git rev-parse --short HEAD`.
+
+`git commit -F <file>` or `git commit --amend -F <file>`. Never `-m`.
+If the message goes through the shell, quote the here-document delimiter
+(`<<'MSG'`, or PowerShell `@'…'@`); never an unquoted `<<EOF`. Delete
+the file once the commit exists.
+
+If git refuses (GPG signature, hook, lock), stop and report its error.
+Never pass `--no-gpg-sign`, `-c commit.gpgsign=false` or `--no-verify`
+on your own: only when the user asks in so many words. Keep the file and
+give its full path.
+
+## 8. Report
+
+Run `git --no-pager log -1 --format="%h%n%B"` (a hook may have rewritten
+the message). The reply MUST contain that full text, title, body and
+trailers, and the hash; on an amend, also the old hash. Add one line on
+the step 2 reformatting (files, tool; and if an unstaged edit kept a
+working-tree file unchanged, say so) when it changed anything. Nothing
+else: no word on unstaged or untracked files, on what the commit
+leaves out, or on an omitted trailer. A refused commit (step 7) is the
+one exception.
+
+## 9. Record missing conventions
+
+Only if step 2 or 4 had to search or infer what CLAUDE.md did not state
+(formatter per file type, prefix, language, casing and punctuation,
+title length, trailer): ask once, listing it, whether to add it to the
+project-root CLAUDE.md. On yes, write it there without staging it.
