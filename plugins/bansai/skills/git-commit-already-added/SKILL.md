@@ -155,6 +155,28 @@ generic commit habits do not.
   footer saying what breaks and what callers must do. Issue trailers
   follow the history's form, only if the user or diff supplies the
   reference; never invent one or take it from the branch name.
+- **Forbidden constructions**: these rules apply to the title and every
+  body paragraph, with no exception:
+  - no em dash (—), in any language; use a period, a colon, a comma or
+    parentheses;
+  - never announce an idea instead of stating it ("The key point is
+    that", "It is worth noting that", "Here is why", "What matters is");
+  - no pseudo-cleft sentences ("What the function does is…", "The reason
+    is that…");
+  - no emphatic presentative constructions ("It is the cache that…",
+    "There is a lock that…" used to stress a point);
+  - no false detached subordinates: no opening clause ("As…", "Since…",
+    "Once…", "Having…") that only sets the scene, without a real condition,
+    cause or time link to the main clause;
+  - no epanorthosis: no self-correction inside a sentence ("X, or rather
+    Y");
+  - no verbal anaphora: never open two successive sentences or clauses
+    with the same verb;
+  - no binary antithesis: no "not X but Y", "X, not Y", "X rather than Y"
+    to set up a contrast; state the positive claim alone;
+  - no announced enumerations: no count or lead-in that announces a list
+    ("There are two causes:"). The `(X/N)` numbering that git and the
+    lint require is not an announcement.
 - **Trailers**: one block at the very end after one blank line, one per
   entry. `BREAKING CHANGE:` is always required for a breaking change.
   It alone wraps at 72, continuation lines indented by two spaces. Every
@@ -177,7 +199,8 @@ fix the file and run it again. Never change N to pass: a different N
 means going back to the ledger.
 
 The script does not read words. Then check by hand: Names, Stay on the
-code, Bug fix, RFC 2119, the facts of the context paragraph.
+code, Bug fix, RFC 2119, Forbidden constructions (no em dash anywhere in
+the file), the facts of the context paragraph.
 
 ## 7. Commit
 

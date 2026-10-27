@@ -82,7 +82,7 @@ Keep only the concepts applicable to the project's nature. L1 §4.1 presents onl
 The `←` marks give the data source; they do not appear in the report. A part is written from its sources only (SKILL.md rule 3). The "§n" references in SKILL.md and in the other `reference/` files follow this numbering: changing it requires updating them.
 
 ```markdown
-# Architecture analysis — [project]
+# Architecture analysis: [project]
 
 Commit: `[sha]` (branch, clean | modified tree) or "unversioned repository" · Date: [YYYY-MM-DD] · Scope: [audited folder, exclusions]
 

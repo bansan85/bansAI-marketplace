@@ -23,8 +23,8 @@ Conversely, a single scenario when the steps only make sense chained (end-to-end
 ## Scenario sheet `06-scenarios/<family>/NN-<name>.md`
 
 ````markdown
-# Scenario NN — <Title> (`function`)
-> Layer 6 — <purpose in 1 or 2 sentences: the task, from the developer's point of view, and when to use it>. See [file.cpp:LINE](../../../src/.../file.cpp#LLINE).
+# Scenario NN: <Title> (`function`)
+> Layer 6: <purpose in 1 or 2 sentences: the task, from the developer's point of view, and when to use it>. See [file.cpp:LINE](../../../src/.../file.cpp#LLINE).
 
 ## Call
 <minimal commented excerpt, one block per exposed language (C++, then each binding); taken from the example when possible>
@@ -91,8 +91,8 @@ A GUI is documented through its screens, interactions and state, not its API. Sa
 | Call stack | UI flow: user event → handler or slot → state or model change → effect (backend call, I/O) → view refresh |
 
 ````markdown
-# Journey NN — <Title>
-> Layer 6 — <what the user accomplishes here, in 1 or 2 sentences>. Window: [MainWindow.cpp:LINE](../../../src/.../MainWindow.cpp#LLINE).
+# Journey NN: <Title>
+> Layer 6: <what the user accomplishes here, in 1 or 2 sentences>. Window: [MainWindow.cpp:LINE](../../../src/.../MainWindow.cpp#LLINE).
 
 ## Overview
 <description of the view: areas, fields, actions, read from the `.ui` / `.qml` / widget code>
@@ -132,8 +132,8 @@ Qt: the flow follows signal → slot → model → view (`connect` at `file:line
 Hardware operations use the scenario sheet. Interrupt sheet `06-scenarios/<family>/NN-isr-<name>.md`:
 
 ````markdown
-# Interrupt NN — <Title> (`Handler`)
-> Layer 6 — <when this interrupt fires and what it does>. See [it.c:LINE](../../../src/it.c#LLINE).
+# Interrupt NN: <Title> (`Handler`)
+> Layer 6: <when this interrupt fires and what it does>. See [it.c:LINE](../../../src/it.c#LLINE).
 
 ## Trigger
 <source: peripheral, event (edge, end of transfer, timeout), priority, whether it preempts or is preempted>
@@ -155,4 +155,4 @@ Handler                           [it.c:LINE]
 
 ## Tutorial job — `04-guides/usage-tutorial.md`
 
-Rebuild the given example step by step, one block per exposed language (C++ and each binding); link to the L1 §3.3 flow it illustrates, if any. Never invent an API: every call comes from the example or from a header you opened. Per step: excerpt of the example (at most ~15 lines) with its link, what it does and why, link to the scenario sheet(s) concerned. First line after the title: `> Layer 4 — usage tutorial.` End with "Further reading" (getting-started, scenarios, glossary).
+Rebuild the given example step by step, one block per exposed language (C++ and each binding); link to the L1 §3.3 flow it illustrates, if any. Never invent an API: every call comes from the example or from a header you opened. Per step: excerpt of the example (at most ~15 lines) with its link, what it does and why, link to the scenario sheet(s) concerned. First line after the title: `> Layer 4: usage tutorial.` End with "Further reading" (getting-started, scenarios, glossary).

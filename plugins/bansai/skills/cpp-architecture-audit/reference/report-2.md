@@ -7,7 +7,7 @@ Read when Step 5 starts, only if L2 is requested. SKILL.md's rules still apply; 
 From the identified style (L1 §3.2) — or, without a dominant style, from the observed structure (levels, boundaries, flows) —, select from SKILL.md's styles reference up to 5 styles that would be an evolution, fewer if not that many are compatible with the project's nature. Criteria: structural principles shared with the existing design, realistic migration effort, fit with the project's nature. Never an incompatible style (e.g. Event Sourcing or microservices for a stateless library), nor one of the reference's last three styles without its signal. Rank them by decreasing relevance, each with the concrete signal that motivates it (e.g. "1. Hexagonal — `net/` already acts as an adapter for `core/`, limited migration effort").
 
 Ask via `AskUserQuestion`:
-- question: "[The current architecture is close to [style]. | The current architecture follows no dominant style.] In order of relevance: 1. [A] — [concrete signal + benefit]; 2. …; 5. … Do you want to steer the recommendations toward one of them, or strengthen the existing design without a paradigm change?";
+- question: "[The current architecture is close to [style]. | The current architecture follows no dominant style.] In order of relevance: 1. [A]: [concrete signal + benefit]; 2. …; 5. … Do you want to steer the recommendations toward one of them, or strengthen the existing design without a paradigm change?";
 - options: the first 3 styles and "Strengthen the existing design"; numbers 4 and 5 are chosen through "Other".
 
 Wait for the answer. Chosen style: recommendations consistent with it. Otherwise: strengthening of the existing design, without a paradigm change.
@@ -95,7 +95,7 @@ Only if structural changes are recommended (🔴 or 🟠 issues, or target style
 ## Skeleton — `architecture-prioritized-issues.md`
 
 ```markdown
-# Prioritized architecture issues — [project]
+# Prioritized architecture issues: [project]
 
 Commit: `[sha]` (branch, clean | modified tree) or "unversioned repository" · Date: [YYYY-MM-DD] · Scope: [audited folder, exclusions]
 
@@ -107,10 +107,10 @@ Commit: `[sha]` (branch, clean | modified tree) or "unversioned repository" · D
 |---|---|---|---|---|
 | [P1](#p1) | 🔴 | … | … | … |
 
-## Cross-cutting concepts — conformance
+## Cross-cutting concepts: conformance
 [each concept of SKILL.md's table that applies to the project, compliant ones included, individually: verdict, criterion applied, evidence from the facets (F#) or L1 reference, P# if any]
 
-## Structuring decisions — consequences
+## Structuring decisions: consequences
 [each decision listed in `synthesis.md` (build type, error model, concurrency model, genericity, ownership…): its documented justification or "not documented", observed consequences on evolvability, build, performance or portability, benefits and costs, P# if any]
 
 ## Architectural technical debt
@@ -122,7 +122,7 @@ Commit: `[sha]` (branch, clean | modified tree) or "unversioned repository" · D
 [per module concerned: areas that will become blocking first, based on change frequency (graph, history) and fan-in; without history, say so]
 
 ## Issue details
-### <a id="p1"></a>🔴 P1 — [short title]
+### <a id="p1"></a>🔴 P1: [short title]
 - **Finding**: [L1 § reference, or F# and module]
 - **Where**: [files, modules]
 - **Architectural impact**: [evolvability, testability, coupling, regression risk…]
@@ -131,10 +131,10 @@ Commit: `[sha]` (branch, clean | modified tree) or "unversioned repository" · D
 
 [all issues, 🟡 included, by decreasing priority]
 
-## Design patterns — possible improvements
+## Design patterns: possible improvements
 [for each pattern in L1 §8: true to its intent or improvable (criteria), with its P# if any; absent patterns proposed only to resolve a non-compliance]
 
-## C++ best practices — non-compliance
+## C++ best practices: non-compliance
 [only the unmet points: point, P#; if everything is met, one line]
 
 ## Alternative architectures considered

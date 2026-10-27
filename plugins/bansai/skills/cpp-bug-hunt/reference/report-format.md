@@ -24,10 +24,23 @@ reasoning, and the **References** field carries the precise locations. The
 References field itself is **exempt** from this budget: it's a list of
 pointers, not prose.
 
+**Forbidden constructions** — these rules apply to every prose field of the
+report, with no exception:
+
+- No em dash (—), in any language. Use a period, a colon, a comma or parentheses.
+- Never announce an idea instead of stating it: no "The key point is that", "It is worth noting that", "Here is why", "What matters is". State the idea.
+- No pseudo-cleft sentences: no "What the function does is…", "What matters here is…", "The reason is that…".
+- No emphatic presentative constructions: no "It is the cache that…", "There is a lock that…" used to stress a point.
+- No false detached subordinates: no opening clause ("As…", "Since…", "Once…", "Having…") that only sets the scene, without a real condition, cause or time link to the main clause.
+- No epanorthosis: no self-correction inside a sentence ("X, or rather Y", "X, no, Y").
+- No verbal anaphora: never open two successive sentences or clauses with the same verb.
+- No binary antithesis: no "not X but Y", "X, not Y", "less X than Y", "X rather than Y" to set up a contrast. State the positive claim alone.
+- No announced enumerations: no count or lead-in that announces a list ("There are three triggers:", "The steps are:"). Write the items directly. The count in the header field "Count by impact" is data, not an announcement.
+
 ## Template
 
 ````markdown
-# C++ Bug Review — <scope>
+# C++ Bug Review: <scope>
 
 - **Date**: <YYYY-MM-DD>
 - **Repo commit**: <sha from `git rev-parse HEAD`>
@@ -79,7 +92,7 @@ defect (state, call sequence).
 without applying it.
 
 **References**:
-1. [<path>:<line(s)>](../../<path>#L<line>) — <what this spot shows, one
+1. [<path>:<line(s)>](../../<path>#L<line>): <what this spot shows, one
    short clause>
 2. …
 ````
@@ -152,28 +165,28 @@ put in parentheses to back a claim becomes a numbered reference.**
 - The library's root exception class does **not** derive from
   `std::exception`: the installed header declares it with no base class
   [1], so a catch on the standard base type never catches it.
-- The constructor knows this — it wraps one call and retranslates the
-  exception into `std::runtime_error` [2] — but it is the **only** one of
+- The constructor knows this: it wraps one call and retranslates the
+  exception into `std::runtime_error` [2]. It is, however, the **only** one of
   the class's five entry points into that library to do so [3].
 - The dependency doesn't cover the gap either: it converts only on the
   read path [4], and its append function has no handler at all [5].
 - At the top of the stack, each entry point catches the standard base type
-  only [6] — so nothing catches this exception, anywhere.
+  only [6]. Nothing catches this exception, anywhere.
 
 **References**:
-1. [vcpkg_installed/x64-windows/include/H5Exception.h:28](../../vcpkg_installed/x64-windows/include/H5Exception.h#L28)
-   — root exception class declared with no base class
-2. [src/urx_writer.cpp:68-73](../../src/urx_writer.cpp#L68-L73) — the only
+1. [vcpkg_installed/x64-windows/include/H5Exception.h:28](../../vcpkg_installed/x64-windows/include/H5Exception.h#L28):
+   root exception class declared with no base class
+2. [src/urx_writer.cpp:68-73](../../src/urx_writer.cpp#L68-L73): the only
    retranslation into `std::runtime_error`
 3. [src/urx_writer.cpp:59](../../src/urx_writer.cpp#L59),
-   [src/urx_writer.cpp:118](../../src/urx_writer.cpp#L118) — unguarded
+   [src/urx_writer.cpp:118](../../src/urx_writer.cpp#L118): unguarded
    entry points
-4. [external/urx/reader_impl.inl:212](../../external/urx/reader_impl.inl#L212)
-   — read path converts, write path doesn't
-5. [external/urx/stream.cpp:84-97](../../external/urx/stream.cpp#L84-L97)
-   — append function, no handler
-6. [tests/VET-008-urx-writing/consumer.cpp:41](../../tests/VET-008-urx-writing/consumer.cpp#L41)
-   — top-level handler catches the standard base type only
+4. [external/urx/reader_impl.inl:212](../../external/urx/reader_impl.inl#L212):
+   read path converts, write path doesn't
+5. [external/urx/stream.cpp:84-97](../../external/urx/stream.cpp#L84-L97):
+   append function, no handler
+6. [tests/VET-008-urx-writing/consumer.cpp:41](../../tests/VET-008-urx-writing/consumer.cpp#L41):
+   top-level handler catches the standard base type only
 ```
 
 ## Location links

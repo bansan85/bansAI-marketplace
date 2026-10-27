@@ -15,9 +15,23 @@ Who reads: a good software developer, about 10 years of experience, who does not
 
 ## Shape
 
-- Open each section with 1 or 2 sentences: what the reader finds here, or the main finding. Details come after.
+- Open each section with 1 or 2 sentences that state its main finding. Details come after.
 - Prefer a small diagram or a short table to a long list. A list has at most 7 items; a paragraph at most 5 sentences.
 - Say each fact once, in the section that owns it; elsewhere, link to it.
+
+## Forbidden constructions
+
+These rules apply to all prose, in every deliverable, with no exception.
+
+- No em dash (—), in any language. Use a period, a colon, a comma or parentheses.
+- Never announce an idea instead of stating it: no "The key point is that", "It is worth noting that", "Here is why", "What matters is". State the idea.
+- No pseudo-cleft sentences: no "What the module does is…", "What matters here is…", "The reason is that…".
+- No emphatic presentative constructions: no "It is the cache that…", "There is a lock that…" used to stress a point.
+- No false detached subordinates: no opening clause ("As…", "Since…", "Once…", "Having…") that only sets the scene, without a real condition, cause or time link to the main clause.
+- No epanorthosis: no self-correction inside a sentence ("X, or rather Y", "X, no, Y").
+- No verbal anaphora: never open two successive sentences or clauses with the same verb.
+- No binary antithesis: no "not X but Y", "X, not Y", "less X than Y", "X rather than Y" to set up a contrast. State the positive claim alone.
+- No announced enumerations: no count or lead-in that announces a list ("There are three reasons:", "The steps are:"). Write the items directly. A count given as a fact in a table or a data field is not an announcement.
 
 ## Architecture, not implementation
 

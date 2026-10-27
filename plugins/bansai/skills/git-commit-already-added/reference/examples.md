@@ -52,7 +52,7 @@ signature and the same behaviour; the old name is gone rather
 than kept as an alias.
 
 BREAKING CHANGE: retreive_config() no longer exists. Call
-  retrieve_config() instead — the arguments and the return type
+  retrieve_config() instead. The arguments and the return type
   are unchanged, so migrating is a rename.
 ```
 

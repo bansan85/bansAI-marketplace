@@ -60,7 +60,7 @@ Source of L4. Recorded by the orchestrator in Step 0; if the section is missing 
 
 ## Page conventions (all documentation pages)
 
-- First line after the title: `> Layer N — <role of the page>.`
+- First line after the title: `> Layer N: <role of the page>.`
 - Clickable relative links to the code, from the page's location, with a line anchor when useful: `[engine.h](../../include/core/engine.h#L42)`.
 - Domain terms in bold, linked to the glossary on their first occurrence.
 - One page = one audience and one level; a "Further reading" section links the neighboring pages (glossary ↔ scenarios ↔ L1 decisions).
