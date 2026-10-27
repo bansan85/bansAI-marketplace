@@ -7,6 +7,9 @@ every label (headings, impact-category names, field names) to that language.
 
 ## Writing style
 
+This section applies to **every** finding text, including the text drafted by
+fan-out subagents (SKILL.md §4bis), which becomes the report's text as is.
+
 Write every finding so it's **understandable by a sharp 16-year-old**,
 while keeping the **technical precision of a software engineer with 10
 years of experience**. The reader is a competent engineer who does **not**

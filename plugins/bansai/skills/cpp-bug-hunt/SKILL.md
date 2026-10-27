@@ -258,10 +258,11 @@ a pool/`std::mutex`/`std::atomic`… spotted while scoping); otherwise, **don't
 launch it**. Don't merge groups further: a single "all bugs" agent would
 lose the focus that makes fan-out valuable.
 
-Each subagent receives the file list, reads `reference/analysis-grid.md`,
-applies **only its group of angles**, checks reachability (step 5) and
-returns its findings in the **standard format** (see
-`reference/report-format.md`), each tagged with both its bug category and
+Each subagent receives the file list, reads `reference/analysis-grid.md`
+and the "Writing style" section of `reference/report-format.md` (its prose
+is written as the report's prose), applies **only its group of angles**,
+checks reachability (step 5) and returns its findings in the **standard
+format** (see `reference/report-format.md`), each tagged with both its bug category and
 its impact category, and each carrying its **reasoning chain** plus its
 **numbered references** (exact paths + lines backing every step).
 
